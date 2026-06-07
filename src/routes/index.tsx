@@ -327,52 +327,10 @@ function FAQ() {
   );
 }
 
-function Footer() {
-  return (
-    <footer className="border-t border-border bg-card">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
-        <div className="md:col-span-2">
-          <div className="flex items-center gap-3">
-            <img src={crest} alt="" className="h-9 w-9" />
-            <div>
-              <div className="font-display font-bold text-primary">Kwali Area Council</div>
-              <div className="text-xs text-muted-foreground">KURCMS · Revenue Portal</div>
-            </div>
-          </div>
-          <p className="mt-4 max-w-sm text-sm text-muted-foreground">
-            The official Kwali Unified Revenue & Compliance Management System for residents,
-            businesses and transport operators.
-          </p>
-        </div>
-        <div>
-          <div className="text-sm font-semibold text-ink">Portal</div>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li><a href="#how-it-works" className="hover:text-primary">How it works</a></li>
-            <li><a href="#services" className="hover:text-primary">Services</a></li>
-            <li><a href="#transport" className="hover:text-primary">Transport</a></li>
-            <li><a href="#faq" className="hover:text-primary">FAQ</a></li>
-          </ul>
-        </div>
-        <div>
-          <div className="text-sm font-semibold text-ink">Contact</div>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li>Council Secretariat, Kwali, FCT</li>
-            <li>support@kwali.gov.ng</li>
-            <li>+234 800 000 0000</li>
-          </ul>
-        </div>
-      </div>
-      <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Kwali Area Council · All rights reserved
-      </div>
-    </footer>
-  );
-}
-
 function KwaliLanding() {
   return (
     <div className="min-h-screen">
-      <Nav />
+      <SiteNav />
       <main>
         <Hero />
         <Steps />
@@ -382,7 +340,7 @@ function KwaliLanding() {
         <CTA />
         <FAQ />
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }

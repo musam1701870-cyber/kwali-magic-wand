@@ -16,6 +16,7 @@ import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as BylawsRouteImport } from './routes/bylaws'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -58,6 +59,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComplianceRoute = ComplianceRouteImport.update({
+  id: '/compliance',
+  path: '/compliance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BylawsRoute = BylawsRouteImport.update({
   id: '/bylaws',
   path: '/bylaws',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/bylaws': typeof BylawsRoute
+  '/compliance': typeof ComplianceRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/payments': typeof PaymentsRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/bylaws': typeof BylawsRoute
+  '/compliance': typeof ComplianceRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/payments': typeof PaymentsRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/bylaws': typeof BylawsRoute
+  '/compliance': typeof ComplianceRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/payments': typeof PaymentsRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/bylaws'
+    | '/compliance'
     | '/contact'
     | '/dashboard'
     | '/payments'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/bylaws'
+    | '/compliance'
     | '/contact'
     | '/dashboard'
     | '/payments'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/bylaws'
+    | '/compliance'
     | '/contact'
     | '/dashboard'
     | '/payments'
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   BylawsRoute: typeof BylawsRoute
+  ComplianceRoute: typeof ComplianceRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   PaymentsRoute: typeof PaymentsRoute
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compliance': {
+      id: '/compliance'
+      path: '/compliance'
+      fullPath: '/compliance'
+      preLoaderRoute: typeof ComplianceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bylaws': {
@@ -310,6 +330,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   BylawsRoute: BylawsRoute,
+  ComplianceRoute: ComplianceRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   PaymentsRoute: PaymentsRoute,

@@ -80,9 +80,9 @@ const PropertiesIndexRoute = PropertiesIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const PropertiesRegisterRoute = PropertiesRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => PropertiesRoute,
+  id: '/properties/register',
+  path: '/properties/register',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
@@ -208,6 +208,7 @@ export interface RootRouteChildren {
   TransportRoute: typeof TransportRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
+  PropertiesRegisterRoute: typeof PropertiesRegisterRoute
   PropertiesIndexRoute: typeof PropertiesIndexRoute
 }
 
@@ -292,10 +293,10 @@ declare module '@tanstack/react-router' {
     }
     '/properties/register': {
       id: '/properties/register'
-      path: '/register'
+      path: '/properties/register'
       fullPath: '/properties/register'
       preLoaderRoute: typeof PropertiesRegisterRouteImport
-      parentRoute: typeof PropertiesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/auth/signup': {
       id: '/auth/signup'
@@ -327,18 +328,9 @@ const rootRouteChildren: RootRouteChildren = {
   TransportRoute: TransportRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
+  PropertiesRegisterRoute: PropertiesRegisterRoute,
   PropertiesIndexRoute: PropertiesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

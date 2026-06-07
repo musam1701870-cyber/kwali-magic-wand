@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SanitationRouteImport } from './routes/sanitation'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as BylawsRouteImport } from './routes/bylaws'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -30,6 +31,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BylawsRoute = BylawsRouteImport.update({
+  id: '/bylaws',
+  path: '/bylaws',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -44,6 +50,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
@@ -59,21 +67,36 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/contact' | '/sanitation' | '/services'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/bylaws'
+    | '/contact'
+    | '/sanitation'
+    | '/services'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/contact' | '/sanitation' | '/services'
-  id: '__root__' | '/' | '/about' | '/contact' | '/sanitation' | '/services'
+  to: '/' | '/about' | '/bylaws' | '/contact' | '/sanitation' | '/services'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/bylaws'
+    | '/contact'
+    | '/sanitation'
+    | '/services'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  BylawsRoute: typeof BylawsRoute
   ContactRoute: typeof ContactRoute
   SanitationRoute: typeof SanitationRoute
   ServicesRoute: typeof ServicesRoute
@@ -102,6 +125,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bylaws': {
+      id: '/bylaws'
+      path: '/bylaws'
+      fullPath: '/bylaws'
+      preLoaderRoute: typeof BylawsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -122,6 +152,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  BylawsRoute: BylawsRoute,
   ContactRoute: ContactRoute,
   SanitationRoute: SanitationRoute,
   ServicesRoute: ServicesRoute,

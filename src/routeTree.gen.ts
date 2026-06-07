@@ -17,6 +17,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BylawsRouteImport } from './routes/bylaws'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PropertiesRegisterRouteImport } from './routes/properties.register'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 
@@ -60,6 +61,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropertiesRegisterRoute = PropertiesRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => PropertiesRoute,
+} as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
   path: '/auth/signup',
@@ -77,11 +83,12 @@ export interface FileRoutesByFullPath {
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/properties': typeof PropertiesRoute
+  '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/properties/register': typeof PropertiesRegisterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -89,11 +96,12 @@ export interface FileRoutesByTo {
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/properties': typeof PropertiesRoute
+  '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/properties/register': typeof PropertiesRegisterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -102,11 +110,12 @@ export interface FileRoutesById {
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/properties': typeof PropertiesRoute
+  '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/properties/register': typeof PropertiesRegisterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/auth/login'
     | '/auth/signup'
+    | '/properties/register'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/auth/login'
     | '/auth/signup'
+    | '/properties/register'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/auth/login'
     | '/auth/signup'
+    | '/properties/register'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -153,7 +165,7 @@ export interface RootRouteChildren {
   BylawsRoute: typeof BylawsRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
-  PropertiesRoute: typeof PropertiesRoute
+  PropertiesRoute: typeof PropertiesRouteWithChildren
   SanitationRoute: typeof SanitationRoute
   ServicesRoute: typeof ServicesRoute
   AuthLoginRoute: typeof AuthLoginRoute
@@ -218,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/properties/register': {
+      id: '/properties/register'
+      path: '/register'
+      fullPath: '/properties/register'
+      preLoaderRoute: typeof PropertiesRegisterRouteImport
+      parentRoute: typeof PropertiesRoute
+    }
     '/auth/signup': {
       id: '/auth/signup'
       path: '/auth/signup'
@@ -235,13 +254,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PropertiesRouteChildren {
+  PropertiesRegisterRoute: typeof PropertiesRegisterRoute
+}
+
+const PropertiesRouteChildren: PropertiesRouteChildren = {
+  PropertiesRegisterRoute: PropertiesRegisterRoute,
+}
+
+const PropertiesRouteWithChildren = PropertiesRoute._addFileChildren(
+  PropertiesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   BylawsRoute: BylawsRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
-  PropertiesRoute: PropertiesRoute,
+  PropertiesRoute: PropertiesRouteWithChildren,
   SanitationRoute: SanitationRoute,
   ServicesRoute: ServicesRoute,
   AuthLoginRoute: AuthLoginRoute,

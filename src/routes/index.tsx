@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import heroImg from "@/assets/kwali-hero.jpg";
 import crest from "@/assets/kwali-crest.png";
+import { SiteNav, SiteFooter } from "@/components/site/SiteShell";
 
 export const Route = createFileRoute("/")({
   head: () => ({

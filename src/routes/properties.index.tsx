@@ -1,17 +1,13 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { properties } from "@/lib/kwali-mock";
 
 export const Route = createFileRoute("/properties/")({
   head: () => ({ meta: [{ title: "Properties — Kwali Revenue Portal" }] }),
-  component: PropertiesLayout,
+  component: PropertiesIndex,
 });
 
-function PropertiesLayout() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname !== "/properties") return <Outlet />;
-  return <PropertiesIndex />;
-}
+
 
 function PropertiesIndex() {
   return (

@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { properties } from "@/lib/kwali-mock";
 
-export const Route = createFileRoute("/properties")({
+export const Route = createFileRoute("/properties/")({
   head: () => ({ meta: [{ title: "Properties — Kwali Revenue Portal" }] }),
   component: PropertiesLayout,
 });

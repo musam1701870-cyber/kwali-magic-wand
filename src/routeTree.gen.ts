@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransportRouteImport } from './routes/transport'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SanitationRouteImport } from './routes/sanitation'
-import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -20,6 +19,7 @@ import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as BylawsRouteImport } from './routes/bylaws'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PropertiesIndexRouteImport } from './routes/properties.index'
 import { Route as PropertiesRegisterRouteImport } from './routes/properties.register'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
@@ -37,11 +37,6 @@ const ServicesRoute = ServicesRouteImport.update({
 const SanitationRoute = SanitationRouteImport.update({
   id: '/sanitation',
   path: '/sanitation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PropertiesRoute = PropertiesRouteImport.update({
-  id: '/properties',
-  path: '/properties',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentsRoute = PaymentsRouteImport.update({
@@ -79,6 +74,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropertiesIndexRoute = PropertiesIndexRouteImport.update({
+  id: '/properties/',
+  path: '/properties/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PropertiesRegisterRoute = PropertiesRegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -103,13 +103,13 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/payments': typeof PaymentsRoute
-  '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/properties/register': typeof PropertiesRegisterRoute
+  '/properties/': typeof PropertiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,13 +119,13 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/payments': typeof PaymentsRoute
-  '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/properties/register': typeof PropertiesRegisterRoute
+  '/properties': typeof PropertiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -136,13 +136,13 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/payments': typeof PaymentsRoute
-  '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/properties/register': typeof PropertiesRegisterRoute
+  '/properties/': typeof PropertiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -154,13 +154,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/payments'
-    | '/properties'
     | '/sanitation'
     | '/services'
     | '/transport'
     | '/auth/login'
     | '/auth/signup'
     | '/properties/register'
+    | '/properties/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -170,13 +170,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/payments'
-    | '/properties'
     | '/sanitation'
     | '/services'
     | '/transport'
     | '/auth/login'
     | '/auth/signup'
     | '/properties/register'
+    | '/properties'
   id:
     | '__root__'
     | '/'
@@ -186,13 +186,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/payments'
-    | '/properties'
     | '/sanitation'
     | '/services'
     | '/transport'
     | '/auth/login'
     | '/auth/signup'
     | '/properties/register'
+    | '/properties/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -203,12 +203,12 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   PaymentsRoute: typeof PaymentsRoute
-  PropertiesRoute: typeof PropertiesRouteWithChildren
   SanitationRoute: typeof SanitationRoute
   ServicesRoute: typeof ServicesRoute
   TransportRoute: typeof TransportRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
+  PropertiesIndexRoute: typeof PropertiesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,13 +232,6 @@ declare module '@tanstack/react-router' {
       path: '/sanitation'
       fullPath: '/sanitation'
       preLoaderRoute: typeof SanitationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/properties': {
-      id: '/properties'
-      path: '/properties'
-      fullPath: '/properties'
-      preLoaderRoute: typeof PropertiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payments': {
@@ -290,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/properties/': {
+      id: '/properties/'
+      path: '/properties'
+      fullPath: '/properties/'
+      preLoaderRoute: typeof PropertiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/properties/register': {
       id: '/properties/register'
       path: '/register'
@@ -314,18 +314,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface PropertiesRouteChildren {
-  PropertiesRegisterRoute: typeof PropertiesRegisterRoute
-}
-
-const PropertiesRouteChildren: PropertiesRouteChildren = {
-  PropertiesRegisterRoute: PropertiesRegisterRoute,
-}
-
-const PropertiesRouteWithChildren = PropertiesRoute._addFileChildren(
-  PropertiesRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -334,12 +322,12 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   PaymentsRoute: PaymentsRoute,
-  PropertiesRoute: PropertiesRouteWithChildren,
   SanitationRoute: SanitationRoute,
   ServicesRoute: ServicesRoute,
   TransportRoute: TransportRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
+  PropertiesIndexRoute: PropertiesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

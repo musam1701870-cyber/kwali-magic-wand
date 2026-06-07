@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SanitationRouteImport } from './routes/sanitation'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BylawsRouteImport } from './routes/bylaws'
 import { Route as AboutRouteImport } from './routes/about'
@@ -26,6 +27,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const SanitationRoute = SanitationRouteImport.update({
   id: '/sanitation',
   path: '/sanitation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/bylaws'
     | '/contact'
+    | '/dashboard'
     | '/sanitation'
     | '/services'
     | '/auth/login'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/bylaws'
     | '/contact'
+    | '/dashboard'
     | '/sanitation'
     | '/services'
     | '/auth/login'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/bylaws'
     | '/contact'
+    | '/dashboard'
     | '/sanitation'
     | '/services'
     | '/auth/login'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   BylawsRoute: typeof BylawsRoute
   ContactRoute: typeof ContactRoute
+  DashboardRoute: typeof DashboardRoute
   SanitationRoute: typeof SanitationRoute
   ServicesRoute: typeof ServicesRoute
   AuthLoginRoute: typeof AuthLoginRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/sanitation'
       fullPath: '/sanitation'
       preLoaderRoute: typeof SanitationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   BylawsRoute: BylawsRoute,
   ContactRoute: ContactRoute,
+  DashboardRoute: DashboardRoute,
   SanitationRoute: SanitationRoute,
   ServicesRoute: ServicesRoute,
   AuthLoginRoute: AuthLoginRoute,
@@ -208,3 +229,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SanitationRouteImport } from './routes/sanitation'
+import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BylawsRouteImport } from './routes/bylaws'
@@ -27,6 +28,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const SanitationRoute = SanitationRouteImport.update({
   id: '/sanitation',
   path: '/sanitation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropertiesRoute = PropertiesRouteImport.update({
+  id: '/properties',
+  path: '/properties',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/properties': typeof PropertiesRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/properties': typeof PropertiesRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/bylaws': typeof BylawsRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/properties': typeof PropertiesRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/bylaws'
     | '/contact'
     | '/dashboard'
+    | '/properties'
     | '/sanitation'
     | '/services'
     | '/auth/login'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/bylaws'
     | '/contact'
     | '/dashboard'
+    | '/properties'
     | '/sanitation'
     | '/services'
     | '/auth/login'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/bylaws'
     | '/contact'
     | '/dashboard'
+    | '/properties'
     | '/sanitation'
     | '/services'
     | '/auth/login'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   BylawsRoute: typeof BylawsRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
+  PropertiesRoute: typeof PropertiesRoute
   SanitationRoute: typeof SanitationRoute
   ServicesRoute: typeof ServicesRoute
   AuthLoginRoute: typeof AuthLoginRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/sanitation'
       fullPath: '/sanitation'
       preLoaderRoute: typeof SanitationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/properties': {
+      id: '/properties'
+      path: '/properties'
+      fullPath: '/properties'
+      preLoaderRoute: typeof PropertiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   BylawsRoute: BylawsRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
+  PropertiesRoute: PropertiesRoute,
   SanitationRoute: SanitationRoute,
   ServicesRoute: ServicesRoute,
   AuthLoginRoute: AuthLoginRoute,

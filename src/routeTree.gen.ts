@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TransportRouteImport } from './routes/transport'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SanitationRouteImport } from './routes/sanitation'
 import { Route as PropertiesRouteImport } from './routes/properties'
@@ -22,6 +23,11 @@ import { Route as PropertiesRegisterRouteImport } from './routes/properties.regi
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 
+const TransportRoute = TransportRouteImport.update({
+  id: '/transport',
+  path: '/transport',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
+  '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/properties/register': typeof PropertiesRegisterRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
+  '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/properties/register': typeof PropertiesRegisterRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/properties': typeof PropertiesRouteWithChildren
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
+  '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/properties/register': typeof PropertiesRegisterRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/properties'
     | '/sanitation'
     | '/services'
+    | '/transport'
     | '/auth/login'
     | '/auth/signup'
     | '/properties/register'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/properties'
     | '/sanitation'
     | '/services'
+    | '/transport'
     | '/auth/login'
     | '/auth/signup'
     | '/properties/register'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/properties'
     | '/sanitation'
     | '/services'
+    | '/transport'
     | '/auth/login'
     | '/auth/signup'
     | '/properties/register'
@@ -181,12 +193,20 @@ export interface RootRouteChildren {
   PropertiesRoute: typeof PropertiesRouteWithChildren
   SanitationRoute: typeof SanitationRoute
   ServicesRoute: typeof ServicesRoute
+  TransportRoute: typeof TransportRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/transport': {
+      id: '/transport'
+      path: '/transport'
+      fullPath: '/transport'
+      preLoaderRoute: typeof TransportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
@@ -296,6 +316,7 @@ const rootRouteChildren: RootRouteChildren = {
   PropertiesRoute: PropertiesRouteWithChildren,
   SanitationRoute: SanitationRoute,
   ServicesRoute: ServicesRoute,
+  TransportRoute: TransportRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
 }

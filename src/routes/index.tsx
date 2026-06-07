@@ -22,44 +22,7 @@ export const Route = createFileRoute("/")({
   component: KwaliLanding,
 });
 
-function Nav() {
-  return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <a href="#top" className="flex items-center gap-3">
-          <img src={crest} alt="Kwali Area Council crest" className="h-10 w-10" />
-          <div className="leading-tight">
-            <div className="font-display text-sm font-bold text-primary">Kwali Area Council</div>
-            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-              Revenue Portal · KURCMS
-            </div>
-          </div>
-        </a>
-        <ul className="hidden items-center gap-8 text-sm font-medium text-foreground md:flex">
-          <li><a href="#how-it-works" className="hover:text-primary">How it works</a></li>
-          <li><a href="#features" className="hover:text-primary">Features</a></li>
-          <li><a href="#services" className="hover:text-primary">Services</a></li>
-          <li><a href="#transport" className="hover:text-primary">Transport</a></li>
-          <li><a href="#faq" className="hover:text-primary">FAQ</a></li>
-        </ul>
-        <div className="flex items-center gap-2">
-          <a
-            href="#login"
-            className="hidden rounded-md px-4 py-2 text-sm font-semibold text-primary hover:bg-secondary sm:inline-flex"
-          >
-            Sign in
-          </a>
-          <a
-            href="#register"
-            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] hover:opacity-95"
-          >
-            Pay now
-          </a>
-        </div>
-      </nav>
-    </header>
-  );
-}
+// Local Nav replaced by shared SiteNav
 
 function Hero() {
   return (

@@ -16,6 +16,8 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoAccounts, setDemoAccounts] = useState<Array<{ email: string; role: string; password: string }> | null>(null);
 
   useEffect(() => {
     if (!loading && user) navigate({ to: isAdmin ? "/executive" : "/portal" });
@@ -33,6 +35,24 @@ function LoginPage() {
     const { lovable } = await import("@/integrations/lovable");
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/portal" });
     if (result.error) setError(result.error.message);
+  };
+
+  const loadDemo = async () => {
+    setDemoLoading(true); setError(null);
+    try {
+      const res = await fetch("/api/public/seed-demo", { method: "POST" });
+      const body = await res.json();
+      if (!body.ok) throw new Error(body.error || "Seed failed");
+      setDemoAccounts(body.accounts);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not load demo accounts");
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
+  const fillDemo = (acc: { email: string; password: string }) => {
+    setEmail(acc.email); setPassword(acc.password);
   };
 
   return (
@@ -84,6 +104,36 @@ function LoginPage() {
             className="w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-60">
             {submitting ? "Signing in…" : "Sign in"}
           </button>
+
+          <div className="rounded-lg border border-dashed border-border bg-secondary/40 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Demo mode</div>
+                <div className="text-xs text-muted-foreground">Generate test accounts to explore the platform.</div>
+              </div>
+              <button type="button" onClick={loadDemo} disabled={demoLoading}
+                className="rounded-md bg-ink px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-60">
+                {demoLoading ? "Loading…" : demoAccounts ? "Refresh" : "Load demo accounts"}
+              </button>
+            </div>
+            {demoAccounts && (
+              <ul className="mt-3 space-y-1.5">
+                {demoAccounts.map((a) => (
+                  <li key={a.email} className="flex items-center justify-between rounded-md bg-card px-2.5 py-1.5 text-xs">
+                    <div className="min-w-0">
+                      <div className="font-mono truncate">{a.email}</div>
+                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{a.role} · pwd: {a.password}</div>
+                    </div>
+                    <button type="button" onClick={() => fillDemo(a)}
+                      className="ml-2 shrink-0 rounded bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">
+                      Use
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           <div className="text-center text-sm text-muted-foreground">
             New here? <Link to="/auth/signup" className="font-semibold text-primary hover:underline">Create a taxpayer account</Link>
           </div>

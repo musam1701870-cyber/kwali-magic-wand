@@ -1,6 +1,7 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, type ReactNode } from "react";
 import crest from "@/assets/kwali-crest.png";
+import { useAuth } from "@/hooks/useAuth";
 
 const navGroups: { label: string; items: { to: string; label: string; icon: string }[] }[] = [
   {

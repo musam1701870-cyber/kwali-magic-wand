@@ -800,8 +800,8 @@ function SuccessScreen({ id, form }: { id: string; form: FormState }) {
         </div>
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link to="/businesses" className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">View business registry</Link>
-          <Link to="/executive" className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold">Go to dashboard</Link>
+          <Link to="/portal" className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Back to my portal</Link>
+          <Link to="/register" className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold" reloadDocument>Register another</Link>
         </div>
       </div>
     </DashboardShell>

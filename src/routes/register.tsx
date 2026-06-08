@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { businessCategories, wards } from "@/lib/kwali-mock";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/register")({
   head: () => ({ meta: [{ title: "Taxpayer Registration — Kwali Smart Revenue Platform" }] }),
@@ -130,11 +132,20 @@ const empty: FormState = {
 const STORAGE_KEY = "ksrp-registration-draft";
 
 function RegisterPage() {
+  const { user, isAdmin, loading } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(empty);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [matching, setMatching] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Require auth
+  useEffect(() => {
+    if (!loading && !user) navigate({ to: "/auth/signup" });
+  }, [user, loading, navigate]);
 
   // Load draft
   useEffect(() => {
@@ -199,10 +210,27 @@ function RegisterPage() {
   const next = () => setStep((s) => Math.min(steps.length - 1, s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));
 
-  const submit = () => {
-    if (!form.consent) return;
-    const id = `KWL-TIN-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 89999)}`;
-    setSubmitted(id);
+  const submit = async () => {
+    if (!form.consent || !user) return;
+    setSaving(true); setSaveError(null);
+    const ref = `KWL-TIN-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 89999)}`;
+    const annual = Number((form.annualRate || "0").replace(/[^\d.]/g, "")) || 0;
+    const { error } = await supabase.from("businesses").insert({
+      owner_id: user.id, ref,
+      taxpayer_type: form.type,
+      business_name: form.businessName || form.ownerName || "Unnamed",
+      trading_name: form.tradingName, category: form.category, industry: form.industry,
+      rc_number: form.rc, tin: form.tin, phone: form.phone, email: form.email, website: form.website,
+      owner_name: form.ownerName, nin: form.nin, bvn: form.bvn,
+      ward: form.ward, district: form.district, street: form.street, building: form.building,
+      landmark: form.landmark, lat: form.lat, lng: form.lng,
+      property_class: form.propertyClass, assessment_ref: form.assessmentRef,
+      annual_rate: annual, obligations: form.obligations, documents: form.uploaded,
+      status: isAdmin ? "Active" : "Pending",
+    });
+    setSaving(false);
+    if (error) { setSaveError(error.message); return; }
+    setSubmitted(ref);
     localStorage.removeItem(STORAGE_KEY);
   };
 

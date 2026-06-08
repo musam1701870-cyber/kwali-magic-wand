@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import heroImg from "@/assets/kwali-hero.jpg";
 import { SiteNav, SiteFooter } from "@/components/site/SiteShell";
 

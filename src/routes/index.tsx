@@ -326,16 +326,139 @@ function FAQ() {
   );
 }
 
+function ReceiptLookup() {
+  return (
+    <section id="verify" className="bg-surface py-16">
+      <div className="mx-auto max-w-3xl px-6 text-center">
+        <p className="text-sm font-semibold uppercase tracking-widest text-primary">Verify a receipt</p>
+        <h2 className="mt-3 text-3xl font-bold text-ink">Confirm any KURCMS payment</h2>
+        <p className="mt-3 text-muted-foreground">
+          Enter a receipt reference (e.g. <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">KWL-REF-2026-00481</code>) or scan the QR on the receipt.
+        </p>
+        <form className="mx-auto mt-6 flex max-w-xl overflow-hidden rounded-full border border-border bg-card shadow-[var(--shadow-card)]" onSubmit={(e) => e.preventDefault()}>
+          <input type="text" placeholder="Enter receipt reference" className="flex-1 bg-transparent px-5 py-3 text-sm outline-none placeholder:text-muted-foreground" />
+          <button type="submit" className="bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-95">Verify</button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+const accountTypes = [
+  { icon: "🏠", title: "Resident / Property Owner", desc: "Register your home or land, get a tenement assessment and pay annual rates plus monthly sanitation levy.", perks: ["Tenement rate billing", "Sanitation pickup enrolment", "Multiple properties on one dashboard"] },
+  { icon: "🏢", title: "Business Owner", desc: "Register your shop, office or SME with CAC details and pay your annual business premises permit.", perks: ["Business premises permit", "Signage & advert levies", "Compliance certificate"] },
+  { icon: "🛵", title: "Transport Operator", desc: "Onboard your tricycle, motorbike or commercial vehicle and pay daily route permits in seconds.", perks: ["Daily ₦100 ticket", "QR sticker for windshield", "Offline verifiable receipts"] },
+];
+
+function AccountTypes() {
+  return (
+    <section className="py-24">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Get started</p>
+          <h2 className="mt-3 text-4xl font-bold text-ink">Choose your account type</h2>
+          <p className="mt-3 text-muted-foreground">Pick the role that fits — you can add more profiles later from your dashboard.</p>
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
+          {accountTypes.map((a) => (
+            <div key={a.title} className="flex flex-col rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-card)] transition hover:-translate-y-1 hover:border-primary/40">
+              <div className="grid h-14 w-14 place-items-center rounded-xl bg-secondary text-3xl">{a.icon}</div>
+              <h3 className="mt-5 text-lg font-bold text-ink">{a.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{a.desc}</p>
+              <ul className="mt-4 space-y-2 text-sm">
+                {a.perks.map((p) => (
+                  <li key={p} className="flex gap-2 text-foreground"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" /><span>{p}</span></li>
+                ))}
+              </ul>
+              <a href="/auth/signup" className="mt-6 inline-flex w-fit items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-95">Create account →</a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const testimonials = [
+  { initials: "MA", name: "Mallam Abubakar", role: "Landlord, Kwali Town", body: "I used to travel to the council secretariat just to pay my tenement rate. Now I do it from my phone in minutes and the receipt downloads instantly." },
+  { initials: "BO", name: "Blessing Ogaji", role: "Shop owner, Yangoji", body: "Renewing my business premises permit on KURCMS took less than five minutes. The compliance certificate is accepted on the spot during inspections." },
+  { initials: "SI", name: "Sani Idris", role: "Tricycle operator, Kilankwa", body: "₦100 a day, paid by USSD, QR sticker on the windshield — no more arguments with task force officers. The scanner shows I'm compliant." },
+];
+
+function Testimonials() {
+  return (
+    <section className="bg-surface py-24">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary">What residents say</p>
+          <h2 className="mt-3 text-4xl font-bold text-ink">Trusted by Kwali property, business & transport owners</h2>
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
+          {testimonials.map((t) => (
+            <div key={t.name} className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+              <div className="text-gold">★★★★★</div>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground">"{t.body}"</p>
+              <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{t.initials}</div>
+                <div>
+                  <div className="text-sm font-bold text-ink">{t.name}</div>
+                  <div className="text-xs text-muted-foreground">{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const notices = [
+  { tag: "Urgent", tagColor: "bg-red-100 text-red-700", date: "2026 Assessment Year", title: "2026 Tenement, Business & Sanitation Levy now open", body: "All property owners, businesses and transport operators across Kwali's 10 wards are required to complete their 2026 assessment. Register or sign in to generate your bill and pay online." },
+  { tag: "Deadline", tagColor: "bg-amber-100 text-amber-700", date: "Dec 31, 2026", title: "10% surcharge after the deadline", body: "Payments received after December 31, 2026 will attract a 10% late-payment surcharge on the outstanding amount. Pay early to remain compliant." },
+  { tag: "New", tagColor: "bg-emerald-100 text-emerald-700", date: "Now live", title: "GPS property mapping rolled out across all wards", body: "Every property registered on KURCMS is now geo-tagged. Ward officers validate your assessment on the map, and enforcement uses GPS for accurate routing." },
+];
+
+function Notices() {
+  return (
+    <section id="notices" className="py-24">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Council notices</p>
+          <h2 className="mt-3 text-4xl font-bold text-ink">Important announcements</h2>
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
+          {notices.map((n) => (
+            <article key={n.title} className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+              <div className="flex items-center justify-between">
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${n.tagColor}`}>{n.tag}</span>
+                <span className="text-xs text-muted-foreground">{n.date}</span>
+              </div>
+              <h3 className="mt-4 text-base font-bold text-ink">{n.title}</h3>
+              <p className="mt-2 flex-1 text-sm text-muted-foreground">{n.body}</p>
+              <a href="/auth/signup" className="mt-5 text-sm font-semibold text-primary hover:underline">Read more →</a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function KwaliLanding() {
   return (
     <div className="min-h-screen">
       <SiteNav />
       <main>
         <Hero />
+        <ReceiptLookup />
         <Steps />
         <Features />
         <Services />
         <Transport />
+        <AccountTypes />
+        <Testimonials />
+        <Notices />
         <CTA />
         <FAQ />
       </main>

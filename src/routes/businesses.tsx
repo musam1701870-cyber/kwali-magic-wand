@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { businesses, businessCategories, wards } from "@/lib/kwali-mock";
 
@@ -173,7 +173,7 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function Field({ label, full, children }: { label: string; full?: boolean; children: React.ReactNode }) {
+function Field({ label, full, children }: { label: string; full?: boolean; children: ReactNode }) {
   return (
     <label className={`block text-sm font-semibold text-ink ${full ? "md:col-span-2" : ""}`}>
       {label}

@@ -2,25 +2,42 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import crest from "@/assets/kwali-crest.png";
 
-const navItems = [
-  { to: "/dashboard", label: "Overview", icon: "🏠" },
-  { to: "/properties", label: "Properties", icon: "🏘️" },
-  { to: "/payments", label: "Payments", icon: "💳" },
-  { to: "/transport", label: "Transport", icon: "🛵" },
-  { to: "/compliance", label: "Compliance", icon: "🛡️" },
-] as const;
+const navGroups: { label: string; items: { to: string; label: string; icon: string }[] }[] = [
+  {
+    label: "Command",
+    items: [
+      { to: "/executive", label: "Executive", icon: "👑" },
+      { to: "/command-center", label: "Command Center", icon: "🎯" },
+      { to: "/intelligence", label: "Intelligence", icon: "🧠" },
+      { to: "/dashboard", label: "Overview", icon: "🏠" },
+    ],
+  },
+  {
+    label: "Revenue",
+    items: [
+      { to: "/taxpayers", label: "Taxpayers", icon: "👥" },
+      { to: "/businesses", label: "Businesses", icon: "🏢" },
+      { to: "/properties", label: "Properties", icon: "🏘️" },
+      { to: "/markets", label: "Markets", icon: "🛒" },
+      { to: "/transport", label: "Transport", icon: "🛵" },
+      { to: "/payments", label: "Payments", icon: "💳" },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { to: "/compliance", label: "Compliance", icon: "🛡️" },
+      { to: "/notices", label: "Demand Notices", icon: "📨" },
+      { to: "/gis", label: "GIS Map", icon: "🗺️" },
+      { to: "/reports", label: "Reports & Export", icon: "📊" },
+      { to: "/notifications", label: "Notifications", icon: "🔔" },
+    ],
+  },
+];
 
 export function DashboardShell({
-  title,
-  subtitle,
-  actions,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  actions?: ReactNode;
-  children: ReactNode;
-}) {
+  title, subtitle, actions, children,
+}: { title: string; subtitle?: string; actions?: ReactNode; children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="grid min-h-screen bg-surface md:grid-cols-[260px_1fr]">
@@ -28,26 +45,31 @@ export function DashboardShell({
         <Link to="/" className="flex items-center gap-3 border-b border-border px-6 py-4">
           <img src={crest} alt="" className="h-9 w-9" />
           <div className="leading-tight">
-            <div className="font-display text-sm font-bold text-primary">Kwali Council</div>
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">KURCMS</div>
+            <div className="font-display text-sm font-bold text-primary">Kwali Area Council</div>
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">KARCIP</div>
           </div>
         </Link>
-        <nav className="flex-1 p-3">
-          {navItems.map((n) => {
-            const active = pathname === n.to || pathname.startsWith(n.to + "/");
-            return (
-              <Link
-                key={n.to}
-                to={n.to}
-                className={
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold " +
-                  (active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary")
-                }
-              >
-                <span className="text-base">{n.icon}</span> {n.label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto p-3">
+          {navGroups.map((g) => (
+            <div key={g.label} className="mb-4">
+              <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{g.label}</div>
+              {g.items.map((n) => {
+                const active = pathname === n.to || pathname.startsWith(n.to + "/");
+                return (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    className={
+                      "mt-0.5 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold " +
+                      (active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary")
+                    }
+                  >
+                    <span className="text-base">{n.icon}</span> {n.label}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
         <div className="border-t border-border p-4">
           <div className="rounded-lg bg-secondary p-3 text-xs text-muted-foreground">
@@ -64,6 +86,20 @@ export function DashboardShell({
           </div>
           <div className="flex items-center gap-3">
             {actions}
+            <select className="hidden rounded-md border border-border bg-background px-2 py-1.5 text-xs font-semibold text-ink md:block">
+              <option>Chairman</option>
+              <option>Revenue Director</option>
+              <option>Revenue Administrator</option>
+              <option>Assessment Officer</option>
+              <option>Revenue Officer</option>
+              <option>Enforcement Officer</option>
+              <option>Market Supervisor</option>
+              <option>Transport Manager</option>
+              <option>Taxpayer</option>
+            </select>
+            <Link to="/notifications" className="relative grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-base">
+              🔔<span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">4</span>
+            </Link>
             <div className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5">
               <div className="grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">AM</div>
               <div className="hidden text-xs sm:block">

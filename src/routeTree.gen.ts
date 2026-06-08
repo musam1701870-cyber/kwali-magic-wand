@@ -13,6 +13,7 @@ import { Route as TransportRouteImport } from './routes/transport'
 import { Route as TaxpayersRouteImport } from './routes/taxpayers'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SanitationRouteImport } from './routes/sanitation'
+import { Route as RevenueCenterRouteImport } from './routes/revenue-center'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PortalRouteImport } from './routes/portal'
@@ -54,6 +55,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const SanitationRoute = SanitationRouteImport.update({
   id: '/sanitation',
   path: '/sanitation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RevenueCenterRoute = RevenueCenterRouteImport.update({
+  id: '/revenue-center',
+  path: '/revenue-center',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
+  '/revenue-center': typeof RevenueCenterRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/taxpayers': typeof TaxpayersRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
+  '/revenue-center': typeof RevenueCenterRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/taxpayers': typeof TaxpayersRoute
@@ -243,6 +251,7 @@ export interface FileRoutesById {
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
+  '/revenue-center': typeof RevenueCenterRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
   '/taxpayers': typeof TaxpayersRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/register'
     | '/reports'
+    | '/revenue-center'
     | '/sanitation'
     | '/services'
     | '/taxpayers'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/register'
     | '/reports'
+    | '/revenue-center'
     | '/sanitation'
     | '/services'
     | '/taxpayers'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/register'
     | '/reports'
+    | '/revenue-center'
     | '/sanitation'
     | '/services'
     | '/taxpayers'
@@ -358,6 +370,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRoute
   RegisterRoute: typeof RegisterRoute
   ReportsRoute: typeof ReportsRoute
+  RevenueCenterRoute: typeof RevenueCenterRoute
   SanitationRoute: typeof SanitationRoute
   ServicesRoute: typeof ServicesRoute
   TaxpayersRoute: typeof TaxpayersRoute
@@ -396,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/sanitation'
       fullPath: '/sanitation'
       preLoaderRoute: typeof SanitationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/revenue-center': {
+      id: '/revenue-center'
+      path: '/revenue-center'
+      fullPath: '/revenue-center'
+      preLoaderRoute: typeof RevenueCenterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -574,6 +594,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRoute,
   RegisterRoute: RegisterRoute,
   ReportsRoute: ReportsRoute,
+  RevenueCenterRoute: RevenueCenterRoute,
   SanitationRoute: SanitationRoute,
   ServicesRoute: ServicesRoute,
   TaxpayersRoute: TaxpayersRoute,
@@ -586,13 +607,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

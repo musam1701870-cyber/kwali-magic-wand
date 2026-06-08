@@ -4,12 +4,10 @@ import crest from "@/assets/kwali-crest.png";
 
 const navGroups: { label: string; items: { to: string; label: string; icon: string }[] }[] = [
   {
-    label: "Command",
+    label: "Overview",
     items: [
-      { to: "/executive", label: "Executive", icon: "👑" },
-      { to: "/command-center", label: "Command Center", icon: "🎯" },
-      { to: "/intelligence", label: "Intelligence", icon: "🧠" },
-      { to: "/dashboard", label: "Overview", icon: "🏠" },
+      { to: "/executive", label: "Dashboard", icon: "🏠" },
+      { to: "/intelligence", label: "Revenue Overview", icon: "📈" },
     ],
   },
   {
@@ -18,18 +16,18 @@ const navGroups: { label: string; items: { to: string; label: string; icon: stri
       { to: "/taxpayers", label: "Taxpayers", icon: "👥" },
       { to: "/businesses", label: "Businesses", icon: "🏢" },
       { to: "/properties", label: "Properties", icon: "🏘️" },
-      { to: "/markets", label: "Markets", icon: "🛒" },
       { to: "/transport", label: "Transport", icon: "🛵" },
+      { to: "/markets", label: "Markets", icon: "🛒" },
       { to: "/payments", label: "Payments", icon: "💳" },
     ],
   },
   {
-    label: "Operations",
+    label: "Administration",
     items: [
-      { to: "/compliance", label: "Compliance", icon: "🛡️" },
+      { to: "/compliance", label: "Compliance", icon: "✅" },
       { to: "/notices", label: "Demand Notices", icon: "📨" },
-      { to: "/gis", label: "GIS Map", icon: "🗺️" },
-      { to: "/reports", label: "Reports & Export", icon: "📊" },
+      { to: "/gis", label: "Ward Map", icon: "🗺️" },
+      { to: "/reports", label: "Reports", icon: "📊" },
       { to: "/notifications", label: "Notifications", icon: "🔔" },
     ],
   },
@@ -46,7 +44,7 @@ export function DashboardShell({
           <img src={crest} alt="" className="h-9 w-9" />
           <div className="leading-tight">
             <div className="font-display text-sm font-bold text-primary">Kwali Area Council</div>
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">KARCIP</div>
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Smart Revenue Platform</div>
           </div>
         </Link>
         <nav className="flex-1 overflow-y-auto p-3">

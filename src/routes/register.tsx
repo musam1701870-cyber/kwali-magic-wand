@@ -800,28 +800,41 @@ const ReviewBlock = ({ title, body }: { title: string; body: string }) => (
 function SuccessScreen({ id, form }: { id: string; form: FormState }) {
   const selectedType = taxpayerTypes.find((t) => t.id === form.type);
   return (
-    <DashboardShell requireAdmin={false} title="Registration Submitted" subtitle="Your taxpayer profile has been created">
-      <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">✓</div>
-        <h2 className="mt-4 font-display text-2xl font-bold">Welcome, {form.businessName || form.ownerName || "Taxpayer"}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Your registration is being reviewed by a Kwali revenue officer.</p>
-
-        <div className="mt-6 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-5">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Taxpayer ID</div>
-          <div className="mt-1 font-mono text-xl font-bold text-primary">{id}</div>
+    <div className="min-h-screen bg-gradient-to-b from-secondary/30 via-background to-background">
+      <header className="border-b border-border bg-card/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={crest} alt="" className="h-9 w-9" />
+            <div className="leading-tight">
+              <div className="font-display text-sm font-bold text-ink">Kwali Area Council</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Smart Revenue Platform</div>
+            </div>
+          </Link>
         </div>
+      </header>
+      <main className="mx-auto max-w-3xl px-4 py-12 md:px-8">
+        <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">✓</div>
+          <h2 className="mt-4 font-display text-2xl font-bold">Welcome, {form.businessName || form.ownerName || "Taxpayer"}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Your registration is being reviewed by a Kwali revenue officer.</p>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3 text-left">
-          <Stat label="Category" value={selectedType?.title.split(" ")[0] ?? "—"} tone="primary" />
-          <Stat label="Obligations" value={String(form.obligations.length)} tone="good" />
-          <Stat label="Documents" value={String(form.uploaded.length)} tone="primary" />
-        </div>
+          <div className="mt-6 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-5">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Taxpayer ID</div>
+            <div className="mt-1 font-mono text-xl font-bold text-primary">{id}</div>
+          </div>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link to="/portal" className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Back to my portal</Link>
-          <Link to="/register" className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold" reloadDocument>Register another</Link>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3 text-left">
+            <Stat label="Category" value={selectedType?.title.split(" ")[0] ?? "—"} tone="primary" />
+            <Stat label="Obligations" value={String(form.obligations.length)} tone="good" />
+            <Stat label="Documents" value={String(form.uploaded.length)} tone="primary" />
+          </div>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link to="/portal" className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Back to my portal</Link>
+            <Link to="/register" className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold" reloadDocument>Register another</Link>
+          </div>
         </div>
-      </div>
-    </DashboardShell>
+      </main>
+    </div>
   );
 }

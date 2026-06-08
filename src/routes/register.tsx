@@ -238,6 +238,7 @@ function RegisterPage() {
 
   return (
     <DashboardShell
+      requireAdmin={false}
       title="Taxpayer Registration"
       subtitle="Guided onboarding for every revenue category in Kwali Area Council"
       actions={
@@ -782,7 +783,7 @@ const ReviewBlock = ({ title, body }: { title: string; body: string }) => (
 function SuccessScreen({ id, form }: { id: string; form: FormState }) {
   const selectedType = taxpayerTypes.find((t) => t.id === form.type);
   return (
-    <DashboardShell title="Registration Submitted" subtitle="Your taxpayer profile has been created">
+    <DashboardShell requireAdmin={false} title="Registration Submitted" subtitle="Your taxpayer profile has been created">
       <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">✓</div>
         <h2 className="mt-4 font-display text-2xl font-bold">Welcome, {form.businessName || form.ownerName || "Taxpayer"}</h2>

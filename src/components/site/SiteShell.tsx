@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import crest from "@/assets/kwali-crest.png";
+import { useAuth } from "@/hooks/useAuth";
 
 export function SiteNav() {
+  const { user, isAdmin, loading } = useAuth();
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
@@ -21,23 +23,33 @@ export function SiteNav() {
           <li><Link to="/transport" className="hover:text-primary" activeProps={{ className: "text-primary" }}>Transport</Link></li>
           <li><Link to="/sanitation" className="hover:text-primary" activeProps={{ className: "text-primary" }}>Sanitation</Link></li>
           <li><Link to="/bylaws" className="hover:text-primary" activeProps={{ className: "text-primary" }}>Bylaws</Link></li>
-          <li><Link to="/compliance" className="hover:text-primary" activeProps={{ className: "text-primary" }}>Compliance</Link></li>
           <li><Link to="/about" className="hover:text-primary" activeProps={{ className: "text-primary" }}>About</Link></li>
           <li><Link to="/contact" className="hover:text-primary" activeProps={{ className: "text-primary" }}>Contact</Link></li>
         </ul>
         <div className="flex items-center gap-2">
-          <Link
-            to="/auth/login"
-            className="hidden rounded-md px-4 py-2 text-sm font-semibold text-primary hover:bg-secondary sm:inline-flex"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/executive"
-            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] hover:opacity-95"
-          >
-            Open Dashboard
-          </Link>
+          {loading ? null : user ? (
+            <>
+              <Link to="/portal" className="hidden rounded-md px-4 py-2 text-sm font-semibold text-primary hover:bg-secondary sm:inline-flex">
+                My Portal
+              </Link>
+              {isAdmin && (
+                <Link to="/executive"
+                  className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] hover:opacity-95">
+                  Admin Dashboard
+                </Link>
+              )}
+            </>
+          ) : (
+            <>
+              <Link to="/auth/login" className="hidden rounded-md px-4 py-2 text-sm font-semibold text-primary hover:bg-secondary sm:inline-flex">
+                Sign in
+              </Link>
+              <Link to="/auth/signup"
+                className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] hover:opacity-95">
+                Register
+              </Link>
+            </>
+          )}
         </div>
       </nav>
     </header>

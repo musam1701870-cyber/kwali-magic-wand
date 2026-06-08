@@ -14,16 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      businesses: {
+        Row: {
+          annual_rate: number | null
+          assessment_ref: string | null
+          building: string | null
+          business_name: string
+          bvn: string | null
+          category: string | null
+          created_at: string
+          district: string | null
+          documents: string[] | null
+          email: string | null
+          id: string
+          industry: string | null
+          landmark: string | null
+          lat: string | null
+          lng: string | null
+          nin: string | null
+          obligations: string[] | null
+          owner_id: string
+          owner_name: string | null
+          payload: Json | null
+          phone: string | null
+          property_class: string | null
+          rc_number: string | null
+          ref: string
+          status: string
+          street: string | null
+          taxpayer_type: string | null
+          tin: string | null
+          trading_name: string | null
+          updated_at: string
+          ward: string | null
+          website: string | null
+        }
+        Insert: {
+          annual_rate?: number | null
+          assessment_ref?: string | null
+          building?: string | null
+          business_name: string
+          bvn?: string | null
+          category?: string | null
+          created_at?: string
+          district?: string | null
+          documents?: string[] | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          landmark?: string | null
+          lat?: string | null
+          lng?: string | null
+          nin?: string | null
+          obligations?: string[] | null
+          owner_id: string
+          owner_name?: string | null
+          payload?: Json | null
+          phone?: string | null
+          property_class?: string | null
+          rc_number?: string | null
+          ref: string
+          status?: string
+          street?: string | null
+          taxpayer_type?: string | null
+          tin?: string | null
+          trading_name?: string | null
+          updated_at?: string
+          ward?: string | null
+          website?: string | null
+        }
+        Update: {
+          annual_rate?: number | null
+          assessment_ref?: string | null
+          building?: string | null
+          business_name?: string
+          bvn?: string | null
+          category?: string | null
+          created_at?: string
+          district?: string | null
+          documents?: string[] | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          landmark?: string | null
+          lat?: string | null
+          lng?: string | null
+          nin?: string | null
+          obligations?: string[] | null
+          owner_id?: string
+          owner_name?: string | null
+          payload?: Json | null
+          phone?: string | null
+          property_class?: string | null
+          rc_number?: string | null
+          ref?: string
+          status?: string
+          street?: string | null
+          taxpayer_type?: string | null
+          tin?: string | null
+          trading_name?: string | null
+          updated_at?: string
+          ward?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          ward: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+          ward?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          ward?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "taxpayer" | "officer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +308,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "taxpayer", "officer"],
+    },
   },
 } as const

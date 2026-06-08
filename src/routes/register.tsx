@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { businessCategories, wards } from "@/lib/kwali-mock";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/register")({
   head: () => ({ meta: [{ title: "Taxpayer Registration — Kwali Smart Revenue Platform" }] }),
@@ -130,11 +132,20 @@ const empty: FormState = {
 const STORAGE_KEY = "ksrp-registration-draft";
 
 function RegisterPage() {
+  const { user, isAdmin, loading } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(empty);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [matching, setMatching] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Require auth
+  useEffect(() => {
+    if (!loading && !user) navigate({ to: "/auth/signup" });
+  }, [user, loading, navigate]);
 
   // Load draft
   useEffect(() => {
@@ -199,10 +210,27 @@ function RegisterPage() {
   const next = () => setStep((s) => Math.min(steps.length - 1, s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));
 
-  const submit = () => {
-    if (!form.consent) return;
-    const id = `KWL-TIN-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 89999)}`;
-    setSubmitted(id);
+  const submit = async () => {
+    if (!form.consent || !user) return;
+    setSaving(true); setSaveError(null);
+    const ref = `KWL-TIN-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 89999)}`;
+    const annual = Number((form.annualRate || "0").replace(/[^\d.]/g, "")) || 0;
+    const { error } = await supabase.from("businesses").insert({
+      owner_id: user.id, ref,
+      taxpayer_type: form.type,
+      business_name: form.businessName || form.ownerName || "Unnamed",
+      trading_name: form.tradingName, category: form.category, industry: form.industry,
+      rc_number: form.rc, tin: form.tin, phone: form.phone, email: form.email, website: form.website,
+      owner_name: form.ownerName, nin: form.nin, bvn: form.bvn,
+      ward: form.ward, district: form.district, street: form.street, building: form.building,
+      landmark: form.landmark, lat: form.lat, lng: form.lng,
+      property_class: form.propertyClass, assessment_ref: form.assessmentRef,
+      annual_rate: annual, obligations: form.obligations, documents: form.uploaded,
+      status: isAdmin ? "Active" : "Pending",
+    });
+    setSaving(false);
+    if (error) { setSaveError(error.message); return; }
+    setSubmitted(ref);
     localStorage.removeItem(STORAGE_KEY);
   };
 
@@ -210,6 +238,7 @@ function RegisterPage() {
 
   return (
     <DashboardShell
+      requireAdmin={false}
       title="Taxpayer Registration"
       subtitle="Guided onboarding for every revenue category in Kwali Area Council"
       actions={
@@ -247,10 +276,13 @@ function RegisterPage() {
                 Continue →
               </button>
             ) : (
-              <button onClick={submit} disabled={!form.consent}
-                className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
-                Submit Registration
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                {saveError && <div className="text-xs text-rose-600">{saveError}</div>}
+                <button onClick={submit} disabled={!form.consent || saving}
+                  className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+                  {saving ? "Submitting…" : "Submit Registration"}
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -751,7 +783,7 @@ const ReviewBlock = ({ title, body }: { title: string; body: string }) => (
 function SuccessScreen({ id, form }: { id: string; form: FormState }) {
   const selectedType = taxpayerTypes.find((t) => t.id === form.type);
   return (
-    <DashboardShell title="Registration Submitted" subtitle="Your taxpayer profile has been created">
+    <DashboardShell requireAdmin={false} title="Registration Submitted" subtitle="Your taxpayer profile has been created">
       <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">✓</div>
         <h2 className="mt-4 font-display text-2xl font-bold">Welcome, {form.businessName || form.ownerName || "Taxpayer"}</h2>
@@ -769,8 +801,8 @@ function SuccessScreen({ id, form }: { id: string; form: FormState }) {
         </div>
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link to="/businesses" className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">View business registry</Link>
-          <Link to="/executive" className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold">Go to dashboard</Link>
+          <Link to="/portal" className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Back to my portal</Link>
+          <Link to="/register" className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold" reloadDocument>Register another</Link>
         </div>
       </div>
     </DashboardShell>

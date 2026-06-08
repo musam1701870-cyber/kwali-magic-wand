@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import crest from "@/assets/kwali-crest.png";
 import { businessCategories, wards } from "@/lib/kwali-mock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -237,59 +237,76 @@ function RegisterPage() {
   if (submitted) return <SuccessScreen id={submitted} form={form} />;
 
   return (
-    <DashboardShell
-      requireAdmin={false}
-      title="Taxpayer Registration"
-      subtitle="Guided onboarding for every revenue category in Kwali Area Council"
-      actions={
-        <div className="hidden items-center gap-3 md:flex">
-          <div className="text-right text-xs">
-            <div className="text-muted-foreground">Draft auto-saved</div>
-            <div className="font-semibold text-primary">{completeness}% complete</div>
+    <div className="min-h-screen bg-gradient-to-b from-secondary/30 via-background to-background">
+      {/* Top bar */}
+      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={crest} alt="" className="h-9 w-9" />
+            <div className="leading-tight">
+              <div className="font-display text-sm font-bold text-ink">Kwali Area Council</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Smart Revenue Platform</div>
+            </div>
+          </Link>
+          <div className="hidden items-center gap-4 md:flex">
+            <div className="text-right text-xs">
+              <div className="text-muted-foreground">Draft auto-saved</div>
+              <div className="font-semibold text-primary">{completeness}% complete</div>
+            </div>
+            <Link to={isAdmin ? "/executive" : "/portal"}
+              className="rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold hover:bg-secondary">
+              Exit
+            </Link>
           </div>
-          <Link to="/businesses" className="rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold">Exit</Link>
         </div>
-      }
-    >
-      <Stepper step={step} onJump={(i) => i < step && setStep(i)} />
+      </header>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-          {step === 0 && <Step1 form={form} update={update} />}
-          {step === 1 && <Step2 form={form} update={update} verifying={verifying} verifyCAC={verifyCAC} />}
-          {step === 2 && <Step3 form={form} update={update} />}
-          {step === 3 && <Step4 form={form} update={update} />}
-          {step === 4 && <Step5 form={form} update={update} matching={matching} matchProperty={matchProperty} />}
-          {step === 5 && <Step6 form={form} update={update} />}
-          {step === 6 && <Step7 form={form} update={update} />}
-          {step === 7 && <Step8 form={form} update={update} risk={risk} completeness={completeness} submit={submit} />}
+      <main className="mx-auto max-w-6xl px-4 py-8 md:px-8">
+        <div className="mb-6">
+          <h1 className="font-display text-2xl font-bold text-ink md:text-3xl">Taxpayer Registration</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Guided onboarding for every revenue category in Kwali Area Council.</p>
+        </div>
 
-          <div className="mt-8 flex items-center justify-between border-t border-border pt-5">
-            <button onClick={back} disabled={step === 0}
-              className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold disabled:opacity-40">
-              ← Back
-            </button>
-            <div className="text-xs text-muted-foreground">Step {step + 1} of {steps.length}</div>
-            {step < steps.length - 1 ? (
-              <button onClick={next} disabled={step === 0 && !form.type}
-                className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
-                Continue →
+        <Stepper step={step} onJump={(i) => i < step && setStep(i)} />
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            {step === 0 && <Step1 form={form} update={update} />}
+            {step === 1 && <Step2 form={form} update={update} verifying={verifying} verifyCAC={verifyCAC} />}
+            {step === 2 && <Step3 form={form} update={update} />}
+            {step === 3 && <Step4 form={form} update={update} />}
+            {step === 4 && <Step5 form={form} update={update} matching={matching} matchProperty={matchProperty} />}
+            {step === 5 && <Step6 form={form} update={update} />}
+            {step === 6 && <Step7 form={form} update={update} />}
+            {step === 7 && <Step8 form={form} update={update} risk={risk} completeness={completeness} submit={submit} />}
+
+            <div className="mt-8 flex items-center justify-between border-t border-border pt-5">
+              <button onClick={back} disabled={step === 0}
+                className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold disabled:opacity-40">
+                ← Back
               </button>
-            ) : (
-              <div className="flex flex-col items-end gap-1">
-                {saveError && <div className="text-xs text-rose-600">{saveError}</div>}
-                <button onClick={submit} disabled={!form.consent || saving}
+              <div className="text-xs text-muted-foreground">Step {step + 1} of {steps.length}</div>
+              {step < steps.length - 1 ? (
+                <button onClick={next} disabled={step === 0 && !form.type}
                   className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
-                  {saving ? "Submitting…" : "Submit Registration"}
+                  Continue →
                 </button>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col items-end gap-1">
+                  {saveError && <div className="text-xs text-rose-600">{saveError}</div>}
+                  <button onClick={submit} disabled={!form.consent || saving}
+                    className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+                    {saving ? "Submitting…" : "Submit Registration"}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        <SidePanel form={form} step={step} completeness={completeness} risk={risk} />
-      </div>
-    </DashboardShell>
+          <SidePanel form={form} step={step} completeness={completeness} risk={risk} />
+        </div>
+      </main>
+    </div>
   );
 }
 
@@ -783,28 +800,41 @@ const ReviewBlock = ({ title, body }: { title: string; body: string }) => (
 function SuccessScreen({ id, form }: { id: string; form: FormState }) {
   const selectedType = taxpayerTypes.find((t) => t.id === form.type);
   return (
-    <DashboardShell requireAdmin={false} title="Registration Submitted" subtitle="Your taxpayer profile has been created">
-      <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">✓</div>
-        <h2 className="mt-4 font-display text-2xl font-bold">Welcome, {form.businessName || form.ownerName || "Taxpayer"}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Your registration is being reviewed by a Kwali revenue officer.</p>
-
-        <div className="mt-6 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-5">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Taxpayer ID</div>
-          <div className="mt-1 font-mono text-xl font-bold text-primary">{id}</div>
+    <div className="min-h-screen bg-gradient-to-b from-secondary/30 via-background to-background">
+      <header className="border-b border-border bg-card/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={crest} alt="" className="h-9 w-9" />
+            <div className="leading-tight">
+              <div className="font-display text-sm font-bold text-ink">Kwali Area Council</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Smart Revenue Platform</div>
+            </div>
+          </Link>
         </div>
+      </header>
+      <main className="mx-auto max-w-3xl px-4 py-12 md:px-8">
+        <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">✓</div>
+          <h2 className="mt-4 font-display text-2xl font-bold">Welcome, {form.businessName || form.ownerName || "Taxpayer"}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Your registration is being reviewed by a Kwali revenue officer.</p>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3 text-left">
-          <Stat label="Category" value={selectedType?.title.split(" ")[0] ?? "—"} tone="primary" />
-          <Stat label="Obligations" value={String(form.obligations.length)} tone="good" />
-          <Stat label="Documents" value={String(form.uploaded.length)} tone="primary" />
-        </div>
+          <div className="mt-6 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-5">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Taxpayer ID</div>
+            <div className="mt-1 font-mono text-xl font-bold text-primary">{id}</div>
+          </div>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link to="/portal" className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Back to my portal</Link>
-          <Link to="/register" className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold" reloadDocument>Register another</Link>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3 text-left">
+            <Stat label="Category" value={selectedType?.title.split(" ")[0] ?? "—"} tone="primary" />
+            <Stat label="Obligations" value={String(form.obligations.length)} tone="good" />
+            <Stat label="Documents" value={String(form.uploaded.length)} tone="primary" />
+          </div>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link to="/portal" className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Back to my portal</Link>
+            <Link to="/register" className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold" reloadDocument>Register another</Link>
+          </div>
         </div>
-      </div>
-    </DashboardShell>
+      </main>
+    </div>
   );
 }

@@ -36,9 +36,24 @@ const navGroups: { label: string; items: { to: string; label: string; icon: stri
 ];
 
 export function DashboardShell({
-  title, subtitle, actions, children,
-}: { title: string; subtitle?: string; actions?: ReactNode; children: ReactNode }) {
+  title, subtitle, actions, children, requireAdmin = true,
+}: { title: string; subtitle?: string; actions?: ReactNode; children: ReactNode; requireAdmin?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user, isAdmin, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading) return;
+    if (requireAdmin) {
+      if (!user) navigate({ to: "/auth/login" });
+      else if (!isAdmin) navigate({ to: "/portal" });
+    }
+  }, [loading, user, isAdmin, requireAdmin, navigate]);
+
+  if (requireAdmin && (loading || !user || !isAdmin)) {
+    return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Checking access…</div>;
+  }
+
   return (
     <div className="grid min-h-screen bg-surface md:grid-cols-[260px_1fr]">
       <aside className="hidden border-r border-border bg-card md:flex md:flex-col">

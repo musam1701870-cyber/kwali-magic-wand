@@ -1,5 +1,44 @@
-// KARCIP — Kwali Area Council Revenue Command & Intelligence Platform
+// KSRP — Kwali Smart Revenue Platform
 // Front-end mock data. Replace with real APIs later.
+
+// Business categories used in registration dropdowns across the platform.
+export const businessCategories = [
+  "Retail / General Merchandise",
+  "Wholesale / Distribution",
+  "Supermarket / Mini Mart",
+  "Restaurant / Eatery / Bukka",
+  "Hotel / Lodge / Guest House",
+  "Event Centre / Hall",
+  "Bar / Lounge / Club",
+  "Filling Station / Petroleum",
+  "Pharmacy / Patent Medicine Store",
+  "Hospital / Clinic / Maternity",
+  "Private School / Education",
+  "Bank / Microfinance",
+  "POS Operator / Agent Banking",
+  "Telecom / ICT Services",
+  "Cyber Café / Business Centre",
+  "Printing / Publishing",
+  "Construction / Engineering",
+  "Real Estate / Property Agency",
+  "Manufacturing / Production",
+  "Block Industry / Building Materials",
+  "Sawmill / Timber",
+  "Mechanic / Auto Workshop",
+  "Car Wash / Vulcanizer",
+  "Transport Company / Logistics",
+  "Bakery / Confectionery",
+  "Cold Room / Frozen Foods",
+  "Boutique / Tailoring / Fashion",
+  "Salon / Barbing / Spa",
+  "Laundry / Dry Cleaning",
+  "Photo Studio / Videography",
+  "Agriculture / Poultry / Livestock",
+  "Mining / Quarry",
+  "Professional Services (Law / Audit / Consult)",
+  "NGO / Religious Organization",
+  "Other",
+] as const;
 
 export const wards = [
   "Kwali", "Yangoji", "Yebu", "Ashara", "Dafa",
@@ -199,18 +238,19 @@ export const sourceMix = [
 ];
 
 export const kpis = {
-  today: 2_180_000,
-  week: 14_750_000,
-  month: 62_400_000,
-  year: 488_900_000,
-  expected: 720_000_000,
-  outstanding: 231_100_000,
-  compliance: 68,
+  today: 2_450_000,
+  week: 18_900_000,
+  month: 84_000_000,
+  year: 1_200_000_000,
+  expected: 1_450_000_000,
+  outstanding: 610_000_000,
+  compliance: 82,
   defaulters: 1284,
+  taxpayers: 34_200,
   businesses: 3210,
   properties: 8920,
-  vehicles: 1142,
-  motorcycles: 2480,
-  tricycles: 1860,
+  vehicles: 4000,
+  motorcycles: 15000,
+  tricycles: 6200,
   traders: 1907,
 };

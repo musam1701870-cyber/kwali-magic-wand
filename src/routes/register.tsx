@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import crest from "@/assets/kwali-crest.png";
 import { businessCategories, wards } from "@/lib/kwali-mock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";

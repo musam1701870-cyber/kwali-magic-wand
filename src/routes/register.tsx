@@ -275,10 +275,13 @@ function RegisterPage() {
                 Continue →
               </button>
             ) : (
-              <button onClick={submit} disabled={!form.consent}
-                className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
-                Submit Registration
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                {saveError && <div className="text-xs text-rose-600">{saveError}</div>}
+                <button onClick={submit} disabled={!form.consent || saving}
+                  className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+                  {saving ? "Submitting…" : "Submit Registration"}
+                </button>
+              </div>
             )}
           </div>
         </div>

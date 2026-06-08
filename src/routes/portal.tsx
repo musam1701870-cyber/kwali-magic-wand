@@ -3,6 +3,14 @@ import { useEffect, useState } from "react";
 import crest from "@/assets/kwali-crest.png";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import heroBg from "@/assets/abuja-city-gate.jpg";
+import imgBusiness from "@/assets/cat-business.jpg";
+import imgProperty from "@/assets/cat-property.jpg";
+import imgMarket from "@/assets/cat-market.jpg";
+import imgTransport from "@/assets/cat-transport.jpg";
+import imgHotel from "@/assets/cat-hotel.jpg";
+import imgSanitation from "@/assets/cat-sanitation.jpg";
+import imgPos from "@/assets/cat-pos.jpg";
 
 export const Route = createFileRoute("/portal")({
   head: () => ({ meta: [{ title: "My Portal — Kwali Smart Revenue Platform" }] }),
@@ -39,8 +47,18 @@ function PortalPage() {
 
   const totalDue = list.reduce((s, b) => s + Number(b.annual_rate ?? 0), 0);
 
+  const categories = [
+    { name: "Business Premises", desc: "Annual business levy & operating permit", img: imgBusiness, to: "/register" },
+    { name: "Property Rates", desc: "Tenement & ground rent assessments", img: imgProperty, to: "/properties/register" },
+    { name: "Market Levies", desc: "Stalls, shops & daily market tickets", img: imgMarket, to: "/markets" },
+    { name: "Transport Tickets", desc: "Tricycle, taxi & commercial vehicle dues", img: imgTransport, to: "/transport" },
+    { name: "Hospitality", desc: "Hotels, lodges & event centres", img: imgHotel, to: "/register" },
+    { name: "Sanitation", desc: "Waste management & environmental fees", img: imgSanitation, to: "/sanitation" },
+    { name: "POS / Mobile Money", desc: "Agency banking operator levy", img: imgPos, to: "/register" },
+  ];
+
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-[#f6f7fb]">
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-3">
@@ -63,29 +81,81 @@ function PortalPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="rounded-2xl p-6 text-primary-foreground" style={{ background: "var(--gradient-hero)" }}>
-          <div className="text-xs font-semibold uppercase tracking-widest text-white/80">Welcome back</div>
-          <h1 className="mt-1 font-display text-3xl font-bold">Manage your registrations & payments</h1>
-          <p className="mt-2 max-w-2xl text-sm text-white/85">
-            Register a new business, view your demand notices, and pay any council levy securely from this portal.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link to="/register" className="rounded-md bg-white px-5 py-2.5 text-sm font-bold text-primary shadow">
-              + Register a new business
-            </Link>
-            <a href="#payments" className="rounded-md border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
-              Make a payment
-            </a>
+        {/* Hero with Abuja City Gate */}
+        <div className="relative overflow-hidden rounded-2xl border border-border shadow-[0_20px_60px_-30px_rgba(15,23,42,0.4)]">
+          <img src={heroBg} alt="Abuja City Gate" className="absolute inset-0 h-full w-full object-cover"
+            width={1920} height={1080} />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a1f1a]/95 via-[#0f4c3a]/80 to-[#0a1f1a]/60" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(201,168,76,0.18),transparent_60%)]" />
+          <div className="relative px-8 py-12 sm:px-12 sm:py-16 text-white">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#c9a84c]" />
+              FCT · Kwali Area Council · Taxpayer Portal
+            </div>
+            <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-5xl">
+              Welcome back{user.user_metadata?.full_name ? `, ${user.user_metadata.full_name.split(" ")[0]}` : ""}.
+            </h1>
+            <p className="mt-3 max-w-xl text-sm text-white/85 sm:text-base">
+              Register obligations, settle assessments and download receipts — all council revenue
+              streams unified in one secure dashboard.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link to="/register" className="rounded-md bg-white px-5 py-2.5 text-sm font-bold text-[#0f4c3a] shadow hover:bg-white/95">
+                + New registration
+              </Link>
+              <a href="#payments" className="rounded-md border border-white/30 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur hover:bg-white/15">
+                Make a payment
+              </a>
+              <a href="#categories" className="rounded-md px-5 py-2.5 text-sm font-semibold text-white/85 hover:text-white">
+                Browse tax categories →
+              </a>
+            </div>
+
+            {/* KPI strip embedded in hero */}
+            <div className="mt-10 grid gap-3 sm:grid-cols-3">
+              <HeroStat label="My registrations" value={String(list.length)} />
+              <HeroStat label="Annual obligations" value={`₦${totalDue.toLocaleString()}`} />
+              <HeroStat label="Active wards" value={String(new Set(list.map((b) => b.ward).filter(Boolean)).size)} />
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <Stat label="My registrations" value={String(list.length)} />
-          <Stat label="Annual obligations" value={`₦${totalDue.toLocaleString()}`} />
-          <Stat label="Active wards" value={String(new Set(list.map((b) => b.ward).filter(Boolean)).size)} />
-        </div>
+        {/* Tax categories with imagery */}
+        <section id="categories" className="mt-10">
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="font-display text-xl font-bold text-ink">Tax & revenue categories</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Choose a category to register an obligation or pay a levy.
+              </p>
+            </div>
+            <Link to="/services" className="hidden text-xs font-semibold text-primary hover:underline sm:inline">
+              View all services →
+            </Link>
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {categories.map((c) => (
+              <Link key={c.name} to={c.to}
+                className="group overflow-hidden rounded-xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img src={c.img} alt={c.name} loading="lazy" width={800} height={600}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-white/80">Revenue stream</div>
+                    <div className="font-display text-base font-bold text-white">{c.name}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="text-xs text-muted-foreground">{c.desc}</div>
+                  <span className="text-xs font-semibold text-primary opacity-0 transition group-hover:opacity-100">Open →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-        <section className="mt-8 rounded-2xl border border-border bg-card p-6">
+        <section className="mt-10 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg font-bold">My businesses</h2>
             <Link to="/register" className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">
@@ -140,7 +210,7 @@ function PortalPage() {
           )}
         </section>
 
-        <section id="payments" className="mt-8 rounded-2xl border border-border bg-card p-6">
+        <section id="payments" className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h2 className="font-display text-lg font-bold">Payment history</h2>
           <p className="mt-1 text-sm text-muted-foreground">Your payments and digital receipts will appear here.</p>
           <div className="mt-4 rounded-xl border border-dashed border-border bg-surface/50 p-8 text-center text-sm text-muted-foreground">
@@ -152,9 +222,9 @@ function PortalPage() {
   );
 }
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-xl border border-border bg-card p-4">
-    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</div>
-    <div className="mt-2 text-2xl font-bold text-primary">{value}</div>
+const HeroStat = ({ label, value }: { label: string; value: string }) => (
+  <div className="rounded-xl border border-white/15 bg-white/[0.07] p-4 backdrop-blur">
+    <div className="text-[10px] font-bold uppercase tracking-widest text-white/70">{label}</div>
+    <div className="mt-1.5 font-display text-2xl font-bold text-white">{value}</div>
   </div>
 );

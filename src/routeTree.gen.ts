@@ -14,6 +14,7 @@ import { Route as TaxpayersRouteImport } from './routes/taxpayers'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SanitationRouteImport } from './routes/sanitation'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as NoticesRouteImport } from './routes/notices'
@@ -57,6 +58,11 @@ const SanitationRoute = SanitationRouteImport.update({
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentsRoute = PaymentsRouteImport.update({
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/notices': typeof NoticesRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
+  '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
@@ -197,6 +204,7 @@ export interface FileRoutesByTo {
   '/notices': typeof NoticesRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
+  '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/notices': typeof NoticesRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
+  '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/sanitation': typeof SanitationRoute
   '/services': typeof ServicesRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/notices'
     | '/notifications'
     | '/payments'
+    | '/register'
     | '/reports'
     | '/sanitation'
     | '/services'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/notices'
     | '/notifications'
     | '/payments'
+    | '/register'
     | '/reports'
     | '/sanitation'
     | '/services'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/notices'
     | '/notifications'
     | '/payments'
+    | '/register'
     | '/reports'
     | '/sanitation'
     | '/services'
@@ -331,6 +343,7 @@ export interface RootRouteChildren {
   NoticesRoute: typeof NoticesRoute
   NotificationsRoute: typeof NotificationsRoute
   PaymentsRoute: typeof PaymentsRoute
+  RegisterRoute: typeof RegisterRoute
   ReportsRoute: typeof ReportsRoute
   SanitationRoute: typeof SanitationRoute
   ServicesRoute: typeof ServicesRoute
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payments': {
@@ -531,6 +551,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoticesRoute: NoticesRoute,
   NotificationsRoute: NotificationsRoute,
   PaymentsRoute: PaymentsRoute,
+  RegisterRoute: RegisterRoute,
   ReportsRoute: ReportsRoute,
   SanitationRoute: SanitationRoute,
   ServicesRoute: ServicesRoute,

@@ -11,7 +11,7 @@ export function SiteNav() {
           <div className="leading-tight">
             <div className="font-display text-sm font-bold text-primary">Kwali Area Council</div>
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-              Revenue Portal · KURCMS
+              Revenue Portal · KARCIP
             </div>
           </div>
         </Link>
@@ -33,10 +33,10 @@ export function SiteNav() {
             Sign in
           </Link>
           <Link
-            to="/dashboard"
+            to="/executive"
             className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] hover:opacity-95"
           >
-            Pay now
+            Open KARCIP
           </Link>
         </div>
       </nav>
@@ -53,12 +53,12 @@ export function SiteFooter() {
             <img src={crest} alt="" className="h-9 w-9" />
             <div>
               <div className="font-display font-bold text-primary">Kwali Area Council</div>
-              <div className="text-xs text-muted-foreground">KURCMS · Revenue Portal</div>
+              <div className="text-xs text-muted-foreground">KARCIP · Revenue Command & Intelligence</div>
             </div>
           </div>
           <p className="mt-4 max-w-sm text-sm text-muted-foreground">
-            The official Kwali Unified Revenue & Compliance Management System for residents,
-            businesses and transport operators across the council's 10 wards.
+            The Kwali Area Council Revenue Command & Intelligence Platform — a single ecosystem
+            for taxpayers, businesses, markets, transport and enforcement across the council's 10 wards.
           </p>
         </div>
         <div>

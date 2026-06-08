@@ -7,25 +7,25 @@ const navGroups: { label: string; items: { to: string; label: string; icon: stri
   {
     label: "Overview",
     items: [
-      { to: "/executive", label: "Dashboard", icon: "🏠" },
-      { to: "/intelligence", label: "Revenue Overview", icon: "📈" },
+      { to: "/executive", label: "Executive Dashboard", icon: "🏠" },
+      { to: "/revenue-center", label: "Revenue Center", icon: "💰" },
+      { to: "/intelligence", label: "Intelligence", icon: "📈" },
     ],
   },
   {
-    label: "Revenue",
+    label: "Registry",
     items: [
       { to: "/taxpayers", label: "Taxpayers", icon: "👥" },
-      
       { to: "/businesses", label: "Businesses", icon: "🏢" },
       { to: "/properties", label: "Properties", icon: "🏘️" },
       { to: "/transport", label: "Transport", icon: "🛵" },
       { to: "/markets", label: "Markets", icon: "🛒" },
-      { to: "/payments", label: "Payments", icon: "💳" },
     ],
   },
   {
-    label: "Administration",
+    label: "Operations",
     items: [
+      { to: "/payments", label: "Payments", icon: "💳" },
       { to: "/compliance", label: "Compliance", icon: "✅" },
       { to: "/notices", label: "Demand Notices", icon: "📨" },
       { to: "/gis", label: "Ward Map", icon: "🗺️" },

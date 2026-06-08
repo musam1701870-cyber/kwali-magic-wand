@@ -45,18 +45,18 @@ function Hero() {
             Register your property or vehicle, get an automatic bill, and pay securely with Paystack.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href="#register"
+            <Link
+              to="/auth/signup"
               className="inline-flex items-center gap-2 rounded-md bg-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-lg hover:opacity-95"
             >
-              Generate my bill →
-            </a>
-            <a
-              href="#verify"
+              Register as a taxpayer →
+            </Link>
+            <Link
+              to="/auth/login"
               className="inline-flex items-center gap-2 rounded-md border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
             >
-              Verify a receipt
-            </a>
+              Sign in to pay
+            </Link>
           </div>
           <dl className="mt-12 grid grid-cols-3 gap-6 text-white">
             {[

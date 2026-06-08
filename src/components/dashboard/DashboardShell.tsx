@@ -15,7 +15,7 @@ const navGroups: { label: string; items: { to: string; label: string; icon: stri
     label: "Revenue",
     items: [
       { to: "/taxpayers", label: "Taxpayers", icon: "👥" },
-      { to: "/register", label: "New Registration", icon: "📝" },
+      
       { to: "/businesses", label: "Businesses", icon: "🏢" },
       { to: "/properties", label: "Properties", icon: "🏘️" },
       { to: "/transport", label: "Transport", icon: "🛵" },

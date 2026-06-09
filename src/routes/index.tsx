@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import heroImg from "@/assets/kwali-hero.jpg";
+import heroBg from "@/assets/kwali-hero-wide.jpg";
 import { SiteNav, SiteFooter } from "@/components/site/SiteShell";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { wards } from "@/lib/kwali-mock";
 import imgBusiness from "@/assets/cat-business.jpg";
 import imgProperty from "@/assets/cat-property.jpg";
@@ -35,6 +36,21 @@ export const Route = createFileRoute("/")({
 function Hero() {
   const [ward, setWard] = useState(wards[0]);
   const [ref, setRef] = useState("");
+  const slides = [
+    { img: imgProperty, tag: "Tenement Rate", title: "Houses, land & shops" },
+    { img: imgBusiness, tag: "Business Permit", title: "Shops, offices & SMEs" },
+    { img: imgMarket, tag: "Market Tickets", title: "Stalls & lockup shops" },
+    { img: imgTransport, tag: "Transport Levy", title: "Keke, okada & buses" },
+    { img: imgHotel, tag: "Hospitality Permit", title: "Hotels & event centres" },
+    { img: imgSanitation, tag: "Sanitation Levy", title: "Refuse & environment" },
+    { img: imgPos, tag: "POS Operator Permit", title: "POS & mobile money" },
+  ];
+  const [slide, setSlide] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setSlide((s) => (s + 1) % slides.length), 3800);
+    return () => clearInterval(id);
+  }, [slides.length]);
+  const active = slides[slide];
   return (
     <section id="top" className="relative overflow-hidden">
       <div
@@ -42,6 +58,9 @@ function Hero() {
         style={{ background: "var(--gradient-hero)" }}
         aria-hidden
       />
+      <img src={heroBg} alt="" aria-hidden
+        className="absolute inset-0 h-full w-full object-cover opacity-20 mix-blend-luminosity" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(201,168,76,0.18),transparent_60%)]" aria-hidden />
       <div className="relative mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
         <div className="text-primary-foreground">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-widest backdrop-blur">
@@ -102,12 +121,57 @@ function Hero() {
         </div>
         <div className="relative">
           <div className="absolute -inset-4 rounded-3xl bg-gold/20 blur-2xl" aria-hidden />
-          <img
-            src={heroImg}
-            alt="Aerial view of Kwali town"
-            className="relative h-full w-full rounded-2xl border border-white/20 object-cover shadow-2xl"
-            loading="eager"
-          />
+          {/* Category slider */}
+          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/20 shadow-2xl">
+            {slides.map((s, i) => (
+              <img key={s.tag} src={s.img} alt={s.title}
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${i === slide ? "opacity-100" : "opacity-0"}`}
+                loading={i === 0 ? "eager" : "lazy"} />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+            <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" /> {active.tag}
+            </div>
+            <div className="absolute bottom-16 left-5 right-5 text-white">
+              <div className="font-display text-2xl font-bold drop-shadow-md">{active.title}</div>
+              <div className="mt-1 text-xs text-white/80">Register, get billed, pay — all in one place.</div>
+            </div>
+            <div className="absolute bottom-4 left-5 flex gap-1.5">
+              {slides.map((s, i) => (
+                <button key={s.tag} aria-label={`Show ${s.tag}`} onClick={() => setSlide(i)}
+                  className={`h-1.5 rounded-full transition-all ${i === slide ? "w-6 bg-gold" : "w-1.5 bg-white/50 hover:bg-white"}`} />
+              ))}
+            </div>
+          </div>
+
+          {/* Floating stats card */}
+          <div className="absolute -bottom-10 -left-4 hidden w-[280px] rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-elegant)] sm:block md:-left-10">
+            <div className="flex items-center gap-2 border-b border-border pb-2">
+              <div className="flex gap-1">
+                <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+              </div>
+              <div className="text-[11px] font-semibold text-ink">Kwali Revenue Portal</div>
+              <div className="ml-auto inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-border bg-secondary/40 p-2">
+                <div className="font-display text-base font-extrabold text-primary">35,000+</div>
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground">Properties</div>
+              </div>
+              <div className="rounded-lg border border-border bg-secondary/40 p-2">
+                <div className="font-display text-base font-extrabold text-primary">19,000+</div>
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground">Businesses</div>
+              </div>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <Link to="/auth/signup" className="rounded-md bg-primary py-1.5 text-center text-[11px] font-bold text-primary-foreground hover:opacity-95">Generate Bill</Link>
+              <Link to="/auth/login" className="rounded-md bg-gold py-1.5 text-center text-[11px] font-bold text-gold-foreground hover:opacity-95">Pay Now</Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>

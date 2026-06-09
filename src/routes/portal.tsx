@@ -48,13 +48,13 @@ function PortalPage() {
   const totalDue = list.reduce((s, b) => s + Number(b.annual_rate ?? 0), 0);
 
   const categories = [
-    { name: "Business Premises", desc: "Annual business levy & operating permit", img: imgBusiness, to: "/register" },
-    { name: "Property Rates", desc: "Tenement & ground rent assessments", img: imgProperty, to: "/properties/register" },
-    { name: "Market Levies", desc: "Stalls, shops & daily market tickets", img: imgMarket, to: "/markets" },
-    { name: "Transport Tickets", desc: "Tricycle, taxi & commercial vehicle dues", img: imgTransport, to: "/transport" },
-    { name: "Hospitality", desc: "Hotels, lodges & event centres", img: imgHotel, to: "/register" },
-    { name: "Sanitation", desc: "Waste management & environmental fees", img: imgSanitation, to: "/sanitation" },
-    { name: "POS / Mobile Money", desc: "Agency banking operator levy", img: imgPos, to: "/register" },
+    { name: "Shops & Offices", desc: "Pay your yearly business permit for shops, offices and SMEs.", img: imgBusiness, to: "/register" },
+    { name: "Houses & Land", desc: "Settle yearly rates on your home, land or rental property.", img: imgProperty, to: "/properties/register" },
+    { name: "Market Stalls", desc: "Buy daily market tickets or pay your stall and lockup fees.", img: imgMarket, to: "/markets" },
+    { name: "Keke, Okada & Buses", desc: "Get the ₦100 daily ticket and route permits for your vehicle.", img: imgTransport, to: "/transport" },
+    { name: "Hotels & Event Centres", desc: "Pay operating permits for hotels, lodges and event halls.", img: imgHotel, to: "/register" },
+    { name: "Waste & Sanitation", desc: "Sign up for refuse pickup and pay your monthly sanitation levy.", img: imgSanitation, to: "/sanitation" },
+    { name: "POS & Mobile Money", desc: "Annual operator permit for POS agents and mobile-money kiosks.", img: imgPos, to: "/register" },
   ];
 
   return (

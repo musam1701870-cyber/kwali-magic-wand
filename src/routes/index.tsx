@@ -181,18 +181,20 @@ function Hero() {
 // ---------- Council stats band ----------
 function StatsBand() {
   const stats = [
-    { v: "₦1.42B", l: "Collected YTD 2026" },
-    { v: "12,480", l: "Registered taxpayers" },
-    { v: "94%", l: "Compliance rate" },
-    { v: "10", l: "Wards covered" },
+    { v: "₦1.42B", l: "Collected YTD 2026", sub: "Verified revenue" },
+    { v: "12,480", l: "Registered taxpayers", sub: "Active accounts" },
+    { v: "94%", l: "Compliance rate", sub: "Across 10 wards" },
+    { v: "10", l: "Wards covered", sub: "Full FCT coverage" },
   ];
   return (
-    <section className="border-y border-border bg-card">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-6 py-10 sm:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.l} className="text-center">
-            <div className="font-display text-3xl font-extrabold text-primary md:text-4xl">{s.v}</div>
-            <div className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">{s.l}</div>
+    <section className="relative overflow-hidden border-y border-border bg-card">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.06),transparent_70%)]" aria-hidden />
+      <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-border sm:grid-cols-4">
+        {stats.map((s, i) => (
+          <div key={s.l} className={`relative flex flex-col items-center px-6 py-10 text-center ${i > 0 ? '' : ''}`}>
+            <div className="font-display text-4xl font-extrabold text-primary md:text-5xl">{s.v}</div>
+            <div className="mt-2 text-sm font-bold text-ink">{s.l}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">{s.sub}</div>
           </div>
         ))}
       </div>
@@ -212,23 +214,28 @@ function Steps() {
     <section id="how-it-works" className="bg-surface py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">How it works</p>
-          <h2 className="mt-3 text-4xl font-bold text-ink">Pay in 4 easy steps</h2>
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            How it works
+          </span>
+          <h2 className="mt-4 text-4xl font-bold text-ink">Pay in 4 easy steps</h2>
           <p className="mt-4 text-muted-foreground">
             Designed for residents, business owners and transport operators across Kwali's 10 wards.
           </p>
         </div>
-        <ol className="mt-14 grid gap-6 md:grid-cols-4">
+        <ol className="relative mt-14 grid gap-6 md:grid-cols-4">
+          {/* connector line on desktop */}
+          <div className="absolute left-0 right-0 top-8 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent md:block" aria-hidden />
           {steps.map((s) => (
             <li
               key={s.n}
-              className="group relative rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]"
+              className="group relative rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-card)] transition-all hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[var(--shadow-elegant)]"
             >
-              <div className="font-display text-5xl font-extrabold text-gold/50 group-hover:text-gold">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary font-display text-sm font-extrabold text-primary-foreground shadow-sm">
                 {s.n}
               </div>
-              <h3 className="mt-2 text-lg font-bold text-ink">{s.t}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{s.d}</p>
+              <h3 className="text-lg font-bold text-ink">{s.t}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.d}</p>
             </li>
           ))}
         </ol>
@@ -253,14 +260,17 @@ function Features() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-primary">Revenue categories</p>
-            <h2 className="mt-3 text-4xl font-bold text-ink">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              Revenue categories
+            </span>
+            <h2 className="mt-4 text-4xl font-bold text-ink">
               Every council levy in one portal
             </h2>
-            <p className="mt-3 text-sm text-muted-foreground">Choose a category to register or pay — descriptions in plain English so you know exactly what each fee covers.</p>
+            <p className="mt-3 text-sm text-muted-foreground">Choose a category to register or pay — plain-English descriptions so you know exactly what each fee covers.</p>
           </div>
-          <Link to="/services" className="text-sm font-semibold text-primary hover:underline">
-            See all services →
+          <Link to="/services" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+            See all services <span aria-hidden>→</span>
           </Link>
         </div>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -305,21 +315,25 @@ function Services() {
     <section id="services" className="bg-surface py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Services</p>
-          <h2 className="mt-3 text-4xl font-bold text-ink">Council fee categories</h2>
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            Services
+          </span>
+          <h2 className="mt-4 text-4xl font-bold text-ink">Council fee categories</h2>
+          <p className="mt-3 text-muted-foreground">All levies and permits handled through one secure portal.</p>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => (
-            <div key={s.t} className="flex flex-col rounded-2xl border border-border bg-card p-6">
+            <div key={s.t} className="group flex flex-col rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-elegant)]">
               <h3 className="text-lg font-bold text-ink">{s.t}</h3>
-              <p className="mt-2 flex-1 text-sm text-muted-foreground">{s.d}</p>
-              <div className="mt-6 flex items-center justify-between">
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{s.d}</p>
+              <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
                 <span className="rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold text-gold-foreground">
                   {s.price}
                 </span>
-                <a href="#register" className="text-sm font-semibold text-primary hover:underline">
-                  Pay →
-                </a>
+                <Link to="/auth/signup" className="flex items-center gap-1 text-sm font-semibold text-primary opacity-0 transition group-hover:opacity-100 hover:underline">
+                  Pay now <span aria-hidden>→</span>
+                </Link>
               </div>
             </div>
           ))}
@@ -430,20 +444,23 @@ function FAQ() {
     <section id="faq" className="bg-surface py-24">
       <div className="mx-auto max-w-4xl px-6">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">FAQ</p>
-          <h2 className="mt-3 text-4xl font-bold text-ink">Frequently asked questions</h2>
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            FAQ
+          </span>
+          <h2 className="mt-4 text-4xl font-bold text-ink">Frequently asked questions</h2>
         </div>
         <div className="mt-12 space-y-3">
           {faqs.map(([q, a]) => (
             <details
               key={q}
-              className="group rounded-2xl border border-border bg-card p-6 open:shadow-[var(--shadow-card)]"
+              className="group rounded-2xl border border-border bg-card p-6 transition open:shadow-[var(--shadow-card)]"
             >
-              <summary className="flex cursor-pointer items-center justify-between text-base font-semibold text-ink">
+              <summary className="flex cursor-pointer list-none items-center justify-between text-base font-semibold text-ink [&::-webkit-details-marker]:hidden">
                 {q}
-                <span className="ml-4 text-gold transition group-open:rotate-45">+</span>
+                <span className="ml-4 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-secondary text-sm font-bold text-muted-foreground transition group-open:rotate-45 group-open:border-primary/30 group-open:bg-primary/8 group-open:text-primary">+</span>
               </summary>
-              <p className="mt-3 text-sm text-muted-foreground">{a}</p>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{a}</p>
             </details>
           ))}
         </div>
@@ -481,22 +498,25 @@ function AccountTypes() {
     <section className="py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Get started</p>
-          <h2 className="mt-3 text-4xl font-bold text-ink">Choose your account type</h2>
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            Get started
+          </span>
+          <h2 className="mt-4 text-4xl font-bold text-ink">Choose your account type</h2>
           <p className="mt-3 text-muted-foreground">Pick the role that fits — you can add more profiles later from your dashboard.</p>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {accountTypes.map((a) => (
-            <div key={a.title} className="flex flex-col rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-card)] transition hover:-translate-y-1 hover:border-primary/40">
-              <div className="grid h-14 w-14 place-items-center rounded-xl bg-secondary text-3xl">{a.icon}</div>
+            <div key={a.title} className="flex flex-col rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-card)] transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--shadow-elegant)]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-3xl shadow-sm">{a.icon}</div>
               <h3 className="mt-5 text-lg font-bold text-ink">{a.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{a.desc}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{a.desc}</p>
               <ul className="mt-4 space-y-2 text-sm">
                 {a.perks.map((p) => (
-                  <li key={p} className="flex gap-2 text-foreground"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" /><span>{p}</span></li>
+                  <li key={p} className="flex gap-2 text-foreground"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" /><span>{p}</span></li>
                 ))}
               </ul>
-              <a href="/auth/signup" className="mt-6 inline-flex w-fit items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-95">Create account →</a>
+              <Link to="/auth/signup" className="mt-6 inline-flex w-fit items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:opacity-95">Create account <span aria-hidden>→</span></Link>
             </div>
           ))}
         </div>
@@ -516,16 +536,19 @@ function Testimonials() {
     <section className="bg-surface py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">What residents say</p>
-          <h2 className="mt-3 text-4xl font-bold text-ink">Trusted by Kwali property, business & transport owners</h2>
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            What residents say
+          </span>
+          <h2 className="mt-4 text-4xl font-bold text-ink">Trusted by Kwali property, business & transport owners</h2>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {testimonials.map((t) => (
-            <div key={t.name} className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-              <div className="text-gold">★★★★★</div>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground">"{t.body}"</p>
+            <div key={t.name} className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)]">
+              <div className="flex gap-0.5 text-gold">{'★'.repeat(5)}</div>
+              <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground">&ldquo;{t.body}&rdquo;</p>
               <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{t.initials}</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm">{t.initials}</div>
                 <div>
                   <div className="text-sm font-bold text-ink">{t.name}</div>
                   <div className="text-xs text-muted-foreground">{t.role}</div>
@@ -550,19 +573,24 @@ function Notices() {
     <section id="notices" className="py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Council notices</p>
-          <h2 className="mt-3 text-4xl font-bold text-ink">Important announcements</h2>
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            Council notices
+          </span>
+          <h2 className="mt-4 text-4xl font-bold text-ink">Important announcements</h2>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {notices.map((n) => (
-            <article key={n.title} className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+            <article key={n.title} className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)]">
               <div className="flex items-center justify-between">
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${n.tagColor}`}>{n.tag}</span>
                 <span className="text-xs text-muted-foreground">{n.date}</span>
               </div>
-              <h3 className="mt-4 text-base font-bold text-ink">{n.title}</h3>
-              <p className="mt-2 flex-1 text-sm text-muted-foreground">{n.body}</p>
-              <a href="/auth/signup" className="mt-5 text-sm font-semibold text-primary hover:underline">Read more →</a>
+              <h3 className="mt-4 text-base font-bold leading-snug text-ink">{n.title}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{n.body}</p>
+              <Link to="/auth/signup" className="mt-5 flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+                Read more <span aria-hidden>→</span>
+              </Link>
             </article>
           ))}
         </div>

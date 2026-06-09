@@ -119,39 +119,64 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-card">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
         <div className="md:col-span-2">
-          <div className="flex items-center gap-3">
-            <img src={crest} alt="" className="h-9 w-9" />
+          <Link to="/" className="flex items-center gap-3">
+            <img src={crest} alt="Kwali crest" className="h-10 w-10 drop-shadow-sm" />
             <div>
               <div className="font-display font-bold text-primary">Kwali Area Council</div>
               <div className="text-xs text-muted-foreground">KSRP · Kwali Smart Revenue Platform</div>
             </div>
-          </div>
-          <p className="mt-4 max-w-sm text-sm text-muted-foreground">
+          </Link>
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
             A modern revenue management and taxpayer service platform for Kwali Area Council —
             unifying property, business, transport, market and compliance revenue across the council's 10 wards.
           </p>
+          <div className="mt-5 flex gap-3">
+            <a
+              href="mailto:support@kwali.gov.ng"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/40 hover:bg-secondary"
+            >
+              support@kwali.gov.ng
+            </a>
+          </div>
         </div>
         <div>
           <div className="text-sm font-semibold text-ink">Quick links</div>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/dashboard" className="hover:text-primary">Dashboard</Link></li>
-            <li><Link to="/properties" className="hover:text-primary">Properties</Link></li>
-            <li><Link to="/payments" className="hover:text-primary">Payments</Link></li>
-            <li><Link to="/transport" className="hover:text-primary">Transport tickets</Link></li>
-            <li><Link to="/compliance" className="hover:text-primary">Compliance</Link></li>
+          <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+            <li><Link to="/dashboard" className="transition hover:text-primary">Dashboard</Link></li>
+            <li><Link to="/properties" className="transition hover:text-primary">Properties</Link></li>
+            <li><Link to="/payments" className="transition hover:text-primary">Payments</Link></li>
+            <li><Link to="/transport" className="transition hover:text-primary">Transport tickets</Link></li>
+            <li><Link to="/compliance" className="transition hover:text-primary">Compliance</Link></li>
+            <li><Link to="/bylaws" className="transition hover:text-primary">Bylaws</Link></li>
           </ul>
         </div>
         <div>
           <div className="text-sm font-semibold text-ink">Contact</div>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li>Council Secretariat, Kwali, FCT</li>
-            <li>support@kwali.gov.ng</li>
-            <li>+234 800 000 0000</li>
+          <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+            <li>Council Secretariat</li>
+            <li>Kwali, Federal Capital Territory</li>
+            <li>
+              <a href="mailto:support@kwali.gov.ng" className="transition hover:text-primary">
+                support@kwali.gov.ng
+              </a>
+            </li>
+            <li>
+              <a href="tel:+2348000000000" className="transition hover:text-primary">
+                +234 800 000 0000
+              </a>
+            </li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Kwali Area Council · All rights reserved
+      <div className="border-t border-border">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-5 text-xs text-muted-foreground sm:flex-row">
+          <span>© {new Date().getFullYear()} Kwali Area Council · All rights reserved</span>
+          <div className="flex gap-4">
+            <Link to="/about" className="transition hover:text-primary">About</Link>
+            <Link to="/contact" className="transition hover:text-primary">Contact</Link>
+            <Link to="/bylaws" className="transition hover:text-primary">Bylaws</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

@@ -103,6 +103,27 @@
     color: var(--color-foreground);
     font-family: var(--font-body);
     font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-muted-foreground); }
+
+  /* Focus rings */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Selection */
+  ::selection {
+    background: color-mix(in oklab, var(--color-primary) 20%, transparent);
+    color: var(--color-ink);
+  }
 }

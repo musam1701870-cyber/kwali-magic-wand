@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { kpis, wardRevenue, monthlyTrend, sourceMix } from "@/lib/kwali-mock";
+import { kpis, wardRevenue, monthlyTrend, sourceMix, traders, marketSessions, marketOfficers } from "@/lib/kwali-mock";
+import { Users, CheckCircle2, XCircle, Banknote, TrendingUp, UserCheck } from "lucide-react";
 
 export const Route = createFileRoute("/executive")({
   head: () => ({ meta: [{ title: "Dashboard — Kwali Smart Revenue Platform" }] }),
@@ -169,6 +170,89 @@ function ExecutivePage() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Row 4 — Market Intelligence */}
+      <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold text-ink">Market Intelligence</h2>
+            <p className="text-xs text-muted-foreground">Trader registration · attendance · daily collection · officer accountability</p>
+          </div>
+          <Link to="/markets" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+            Full market view →
+          </Link>
+        </div>
+
+        {/* Market KPIs */}
+        <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {[
+            { label: "Registered Traders", value: traders.length, icon: <Users className="h-4 w-4" />, color: "bg-primary/8 text-primary" },
+            { label: "Present Today", value: marketSessions.reduce((s, m) => s + m.present, 0), icon: <UserCheck className="h-4 w-4" />, color: "bg-blue-50 text-blue-700" },
+            { label: "Paid Today", value: traders.filter((t) => t.paidToday).length, icon: <CheckCircle2 className="h-4 w-4" />, color: "bg-emerald-50 text-emerald-700" },
+            { label: "Unpaid Today", value: traders.filter((t) => !t.paidToday).length, icon: <XCircle className="h-4 w-4" />, color: "bg-red-50 text-red-700" },
+            { label: "Revenue Today", value: fmtNaira(marketSessions.reduce((s, m) => s + m.revenue, 0)), icon: <Banknote className="h-4 w-4" />, color: "bg-amber-50 text-amber-700" },
+          ].map((s) => (
+            <div key={s.label} className="rounded-xl border border-border bg-surface p-3">
+              <div className={`mb-2 inline-flex rounded-lg p-1.5 ${s.color}`}>{s.icon}</div>
+              <div className="font-display text-xl font-bold text-ink">{s.value}</div>
+              <div className="text-[11px] text-muted-foreground">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Market session rows */}
+        <div className="grid gap-3 md:grid-cols-2">
+          {marketSessions.map((s) => {
+            const paidPct = Math.round((s.paid / s.present) * 100);
+            return (
+              <div key={s.id} className="rounded-xl border border-border bg-surface p-4">
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-ink text-sm">{s.marketName}</div>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${paidPct >= 80 ? "bg-emerald-50 text-emerald-700" : paidPct >= 60 ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>{paidPct}% paid</span>
+                </div>
+                <div className="mt-2 grid grid-cols-4 gap-1 text-[11px]">
+                  {[["Reg.", s.registered], ["Present", s.present], ["Paid", s.paid], ["Rev.", fmtNaira(s.revenue)]].map(([l, v]) => (
+                    <div key={l}><div className="text-muted-foreground">{l}</div><div className="font-bold text-ink">{v}</div></div>
+                  ))}
+                </div>
+                <div className="mt-2 h-1.5 rounded-full bg-secondary">
+                  <div className="h-1.5 rounded-full bg-primary" style={{ width: `${paidPct}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Officer accountability strip */}
+        <div className="mt-4 overflow-x-auto">
+          <div className="flex items-center gap-3 min-w-max">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground w-28 shrink-0">Officer</div>
+            {marketOfficers.map((o) => (
+              <div key={o.id} className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-3 py-2 min-w-[160px]">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                  {o.name.split(" ").slice(-1)[0].slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-ink">{o.name.replace("Ofc. ", "")}</div>
+                  <div className="text-[10px] text-muted-foreground">{fmtNaira(o.collectedToday)} · {o.efficiency}%</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex gap-3">
+          <Link to="/markets/register" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-95">
+            Register Trader
+          </Link>
+          <Link to="/markets/collect" className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary">
+            Market Day Collection
+          </Link>
+          <Link to="/markets/traders" className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary">
+            Trader Directory
+          </Link>
         </div>
       </div>
     </DashboardShell>

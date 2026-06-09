@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/useAuth";
+import crest from "../assets/kwali-crest.png";
 
 function NotFoundComponent() {
   return (
@@ -78,23 +79,30 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "tax website" },
-      { name: "description", content: "tax website" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "tax website" },
-      { property: "og:description", content: "tax website" },
+      { title: "Kwali Area Council — Smart Revenue Platform" },
+      { name: "description", content: "KURCMS — Kwali Unified Revenue & Compliance Management System. Pay tenement rates, business permits and transport levies online." },
+      { name: "author", content: "Kwali Area Council" },
+      { property: "og:title", content: "Kwali Area Council — Smart Revenue Platform" },
+      { property: "og:description", content: "Pay your Kwali council levies online — tenement, business, sanitation and transport, all in one portal." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "tax website" },
-      { name: "twitter:description", content: "tax website" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/96f4db29-be32-4e42-a2d9-c3cf99877709/id-preview-54dba5ca--91dcc1e1-0494-4c93-9adc-3aa09a1d14f0.lovable.app-1780866379719.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/96f4db29-be32-4e42-a2d9-c3cf99877709/id-preview-54dba5ca--91dcc1e1-0494-4c93-9adc-3aa09a1d14f0.lovable.app-1780866379719.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@KwaliCouncil" },
+      { name: "twitter:title", content: "Kwali Area Council — Smart Revenue Platform" },
+      { name: "twitter:description", content: "Pay your Kwali council levies online — tenement, business, sanitation and transport." },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        href: crest,
+      },
+      {
+        rel: "apple-touch-icon",
+        href: crest,
       },
     ],
   }),

@@ -254,3 +254,183 @@ export const kpis = {
   tricycles: 6200,
   traders: 1907,
 };
+
+/* ============================================================
+   MARKET TRADER IDENTITY SYSTEM
+   ============================================================ */
+
+export const tradeTypes = [
+  "Vegetables & Tomatoes", "Grains & Foodstuff", "Frozen Foods & Fish",
+  "Livestock & Poultry", "Clothing & Fashion", "Electronics & Accessories",
+  "Building Materials", "Beverages & Drinks", "Pharmaceuticals & Medicine",
+  "Cosmetics & Personal Care", "POS / Mobile Money", "Provisions & Grocery",
+  "Fruits & Produce", "Cooking Utensils & Household", "Tailoring & Sewing",
+  "Shoes & Leather Goods", "Bags & Accessories", "Furniture & Woodwork",
+  "Pepper & Spices", "Rice & Grains (Wholesale)", "Spare Parts & Auto",
+  "Agricultural Inputs", "Bakery & Confectionery", "Phone & Repairs",
+  "Other",
+] as const;
+
+export const marketZoneNames = [
+  "Vegetable Zone", "Grain & Foodstuff Zone", "Livestock Zone",
+  "Fashion & Clothing Zone", "Electronics Zone", "Provisions Zone",
+  "Frozen Foods Zone", "Building Materials Zone", "General Zone",
+] as const;
+
+/** Category A = large traders, B = medium, C = small/informal */
+export type TraderCategory = "A" | "B" | "C";
+export type TraderStatus = "Active" | "Inactive" | "Suspended";
+export type PassType = "Daily" | "Monthly";
+
+export type Trader = {
+  id: string;
+  traderId: string;       // KWL-TRD-000123
+  name: string;
+  phone: string;
+  nin?: string;
+  initials: string;       // for avatar placeholder
+  marketId: string;
+  marketName: string;
+  tradeType: string;
+  gender: "Male" | "Female";
+  ward: string;
+  village?: string;
+  emergencyContact?: string;
+  category: TraderCategory;
+  zone: string;
+  status: TraderStatus;
+  registeredAt: string;
+  passType: PassType;
+  paidToday: boolean;
+  lastPaid: string;
+  totalPayments: number;
+  complianceScore: number;
+  dailyRate: number;
+  monthlyRate: number;
+};
+
+const mkTrader = (
+  n: number, name: string, phone: string, marketId: string, marketName: string,
+  tradeType: string, gender: "Male" | "Female", ward: string, category: TraderCategory,
+  zone: string, paidToday: boolean, complianceScore: number, passType: PassType = "Daily",
+): Trader => {
+  const pad = String(n).padStart(6, "0");
+  const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+  const dailyRate = category === "A" ? 300 : category === "B" ? 200 : 100;
+  return {
+    id: `tr${n}`, traderId: `KWL-TRD-${pad}`, name, phone, initials,
+    marketId, marketName, tradeType, gender, ward,
+    category, zone, status: "Active", registeredAt: "2026-05-15",
+    passType, paidToday, lastPaid: paidToday ? "2026-06-09" : "2026-06-06",
+    totalPayments: Math.round(complianceScore * 1.2), complianceScore,
+    dailyRate, monthlyRate: dailyRate * 20,
+  };
+};
+
+export const traders: Trader[] = [
+  mkTrader(1, "Mary Yakubu", "0803-441-2210", "m1", "Kwali Central Market", "Vegetables & Tomatoes", "Female", "Kwali", "C", "Vegetable Zone", true, 98),
+  mkTrader(2, "Aisha Musa", "0814-552-3301", "m1", "Kwali Central Market", "Grains & Foodstuff", "Female", "Kwali", "B", "Grain & Foodstuff Zone", true, 91),
+  mkTrader(3, "Ibrahim Sule", "0901-113-4490", "m1", "Kwali Central Market", "Rice & Grains (Wholesale)", "Male", "Kwali", "A", "Grain & Foodstuff Zone", true, 87),
+  mkTrader(4, "Hauwa Danladi", "0815-220-7712", "m1", "Kwali Central Market", "Clothing & Fashion", "Female", "Yangoji", "B", "Fashion & Clothing Zone", false, 72),
+  mkTrader(5, "Sani Bello", "0703-881-2200", "m1", "Kwali Central Market", "Electronics & Accessories", "Male", "Kwali", "A", "Electronics Zone", true, 94),
+  mkTrader(6, "Fatima Umar", "0906-330-1199", "m1", "Kwali Central Market", "Pepper & Spices", "Female", "Kwali", "C", "Vegetable Zone", true, 100),
+  mkTrader(7, "Musa Garba", "0812-001-4482", "m1", "Kwali Central Market", "Provisions & Grocery", "Male", "Wako", "B", "Provisions Zone", false, 55),
+  mkTrader(8, "Blessing Eze", "0803-774-9901", "m1", "Kwali Central Market", "Cosmetics & Personal Care", "Female", "Kwali", "C", "General Zone", true, 88),
+  mkTrader(9, "Adamu Bako", "0705-662-3318", "m2", "Yangoji Daily Market", "Vegetables & Tomatoes", "Male", "Yangoji", "C", "Vegetable Zone", true, 96),
+  mkTrader(10, "Zainab Ahmed", "0811-443-7721", "m2", "Yangoji Daily Market", "Frozen Foods & Fish", "Female", "Yangoji", "B", "Frozen Foods Zone", false, 61),
+  mkTrader(11, "Isah Yusuf", "0902-551-8803", "m2", "Yangoji Daily Market", "Livestock & Poultry", "Male", "Dafa", "A", "Livestock Zone", true, 78),
+  mkTrader(12, "Ramatu Bello", "0803-223-5514", "m2", "Yangoji Daily Market", "Fruits & Produce", "Female", "Yangoji", "C", "Vegetable Zone", true, 90),
+  mkTrader(13, "Tanimu Lawal", "0814-119-2243", "m2", "Yangoji Daily Market", "Shoes & Leather Goods", "Male", "Kwali", "B", "Fashion & Clothing Zone", false, 44),
+  mkTrader(14, "Hadiza Sabo", "0905-771-4432", "m3", "Dafa Cattle Market", "Livestock & Poultry", "Female", "Dafa", "A", "Livestock Zone", true, 99),
+  mkTrader(15, "Umar Bello", "0812-882-6610", "m3", "Dafa Cattle Market", "Agricultural Inputs", "Male", "Dafa", "B", "Grain & Foodstuff Zone", true, 85),
+  mkTrader(16, "Sumaiya Idris", "0704-113-8820", "m3", "Dafa Cattle Market", "Grains & Foodstuff", "Female", "Dafa", "C", "Grain & Foodstuff Zone", false, 67),
+  mkTrader(17, "Mohammed Kwali", "0901-332-1108", "m4", "Pai Foodstuff Market", "Beverages & Drinks", "Male", "Pai", "B", "Provisions Zone", true, 82),
+  mkTrader(18, "Rabi Yusuf", "0815-004-9912", "m4", "Pai Foodstuff Market", "Cooking Utensils & Household", "Female", "Pai", "C", "General Zone", true, 77),
+  mkTrader(19, "Abdullahi Musa", "0803-667-2213", "m4", "Pai Foodstuff Market", "Building Materials", "Male", "Pai", "A", "Building Materials Zone", true, 93),
+  mkTrader(20, "Jummai Garba", "0706-443-5580", "m4", "Pai Foodstuff Market", "Vegetables & Tomatoes", "Female", "Pai", "C", "Vegetable Zone", false, 59),
+  mkTrader(21, "Bilkis Sule", "0812-774-3301", "m1", "Kwali Central Market", "Tailoring & Sewing", "Female", "Kwali", "B", "Fashion & Clothing Zone", true, 88, "Monthly"),
+  mkTrader(22, "Garba Mohammed", "0901-552-7712", "m1", "Kwali Central Market", "Spare Parts & Auto", "Male", "Gumbo", "A", "General Zone", true, 95, "Monthly"),
+  mkTrader(23, "Nana Bello", "0814-330-4492", "m2", "Yangoji Daily Market", "Bakery & Confectionery", "Female", "Yangoji", "C", "General Zone", true, 100, "Monthly"),
+  mkTrader(24, "Isa Lawal", "0703-221-9918", "m4", "Pai Foodstuff Market", "POS / Mobile Money", "Male", "Pai", "B", "General Zone", false, 40),
+  mkTrader(25, "Halima Ahmed", "0905-882-6641", "m1", "Kwali Central Market", "Phone & Repairs", "Female", "Kwali", "B", "Electronics Zone", true, 86),
+];
+
+export type MarketZone = {
+  id: string;
+  name: string;
+  marketId: string;
+  marketName: string;
+  traderCount: number;
+  category: TraderCategory;
+};
+
+export const marketZones: MarketZone[] = [
+  { id: "z1", name: "Vegetable Zone", marketId: "m1", marketName: "Kwali Central Market", traderCount: 89, category: "C" },
+  { id: "z2", name: "Grain & Foodstuff Zone", marketId: "m1", marketName: "Kwali Central Market", traderCount: 72, category: "B" },
+  { id: "z3", name: "Fashion & Clothing Zone", marketId: "m1", marketName: "Kwali Central Market", traderCount: 55, category: "B" },
+  { id: "z4", name: "Electronics Zone", marketId: "m1", marketName: "Kwali Central Market", traderCount: 38, category: "A" },
+  { id: "z5", name: "Provisions Zone", marketId: "m1", marketName: "Kwali Central Market", traderCount: 61, category: "B" },
+  { id: "z6", name: "Livestock Zone", marketId: "m3", marketName: "Dafa Cattle Market", traderCount: 45, category: "A" },
+  { id: "z7", name: "Vegetable Zone", marketId: "m2", marketName: "Yangoji Daily Market", traderCount: 53, category: "C" },
+  { id: "z8", name: "Frozen Foods Zone", marketId: "m2", marketName: "Yangoji Daily Market", traderCount: 34, category: "B" },
+  { id: "z9", name: "General Zone", marketId: "m4", marketName: "Pai Foodstuff Market", traderCount: 68, category: "C" },
+];
+
+export type MarketOfficer = {
+  id: string;
+  name: string;
+  badge: string;
+  marketId: string;
+  marketName: string;
+  collectedToday: number;
+  collectedMonth: number;
+  receiptsToday: number;
+  efficiency: number; // %
+};
+
+export const marketOfficers: MarketOfficer[] = [
+  { id: "o1", name: "Ofc. Amina Sule", badge: "KWL-MKT-001", marketId: "m1", marketName: "Kwali Central Market", collectedToday: 52000, collectedMonth: 980000, receiptsToday: 186, efficiency: 94 },
+  { id: "o2", name: "Ofc. Idris Musa", badge: "KWL-MKT-002", marketId: "m1", marketName: "Kwali Central Market", collectedToday: 41000, collectedMonth: 820000, receiptsToday: 152, efficiency: 81 },
+  { id: "o3", name: "Ofc. Fatima Bello", badge: "KWL-MKT-003", marketId: "m2", marketName: "Yangoji Daily Market", collectedToday: 21000, collectedMonth: 390000, receiptsToday: 97, efficiency: 73 },
+  { id: "o4", name: "Ofc. Garba Lawal", badge: "KWL-MKT-004", marketId: "m3", marketName: "Dafa Cattle Market", collectedToday: 26000, collectedMonth: 510000, receiptsToday: 88, efficiency: 91 },
+  { id: "o5", name: "Ofc. Halima Kwali", badge: "KWL-MKT-005", marketId: "m4", marketName: "Pai Foodstuff Market", collectedToday: 30800, collectedMonth: 604000, receiptsToday: 122, efficiency: 85 },
+];
+
+export type MarketSession = {
+  id: string;
+  marketId: string;
+  marketName: string;
+  date: string;
+  registered: number;
+  present: number;
+  paid: number;
+  absent: number;
+  revenue: number;
+  officerName: string;
+};
+
+export const marketSessions: MarketSession[] = [
+  { id: "ms1", marketId: "m1", marketName: "Kwali Central Market", date: "2026-06-09", registered: 412, present: 318, paid: 280, absent: 94, revenue: 71200, officerName: "Ofc. Amina Sule" },
+  { id: "ms2", marketId: "m2", marketName: "Yangoji Daily Market", date: "2026-06-09", registered: 180, present: 110, paid: 97, absent: 70, revenue: 21000, officerName: "Ofc. Fatima Bello" },
+  { id: "ms3", marketId: "m3", marketName: "Dafa Cattle Market", date: "2026-06-09", registered: 95, present: 88, paid: 84, absent: 7, revenue: 26000, officerName: "Ofc. Garba Lawal" },
+  { id: "ms4", marketId: "m4", marketName: "Pai Foodstuff Market", date: "2026-06-09", registered: 220, present: 155, paid: 132, absent: 65, revenue: 30800, officerName: "Ofc. Halima Kwali" },
+];
+
+export type TraderAssociation = {
+  id: string;
+  name: string;
+  marketId: string;
+  marketName: string;
+  chairman: string;
+  phone: string;
+  members: number;
+  registered: number;
+};
+
+export const traderAssociations: TraderAssociation[] = [
+  { id: "ta1", name: "Kwali Women Traders Association", marketId: "m1", marketName: "Kwali Central Market", chairman: "Alhaja Maryam Sule", phone: "0803-441-9910", members: 210, registered: 178 },
+  { id: "ta2", name: "Kwali Grain Dealers Association", marketId: "m1", marketName: "Kwali Central Market", chairman: "Mallam Ibrahim Garba", phone: "0901-223-5541", members: 72, registered: 65 },
+  { id: "ta3", name: "Yangoji Traders Association", marketId: "m2", marketName: "Yangoji Daily Market", chairman: "Hajiya Ramatu Ahmed", phone: "0814-770-1122", members: 180, registered: 142 },
+  { id: "ta4", name: "Dafa Livestock Dealers Association", marketId: "m3", marketName: "Dafa Cattle Market", chairman: "Alhaji Usman Danladi", phone: "0705-882-3390", members: 95, registered: 91 },
+  { id: "ta5", name: "Pai Market Traders Coalition", marketId: "m4", marketName: "Pai Foodstuff Market", chairman: "Mrs. Grace Okafor", phone: "0906-114-8821", members: 220, registered: 190 },
+];

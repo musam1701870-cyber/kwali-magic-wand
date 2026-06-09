@@ -34,6 +34,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PropertiesIndexRouteImport } from './routes/properties.index'
 import { Route as PropertiesRegisterRouteImport } from './routes/properties.register'
+import { Route as MarketsTradersRouteImport } from './routes/markets.traders'
+import { Route as MarketsRegisterRouteImport } from './routes/markets.register'
+import { Route as MarketsCollectRouteImport } from './routes/markets.collect'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as ApiPublicSeedDemoRouteImport } from './routes/api/public/seed-demo'
@@ -163,6 +166,21 @@ const PropertiesRegisterRoute = PropertiesRegisterRouteImport.update({
   path: '/properties/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketsTradersRoute = MarketsTradersRouteImport.update({
+  id: '/traders',
+  path: '/traders',
+  getParentRoute: () => MarketsRoute,
+} as any)
+const MarketsRegisterRoute = MarketsRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => MarketsRoute,
+} as any)
+const MarketsCollectRoute = MarketsCollectRouteImport.update({
+  id: '/collect',
+  path: '/collect',
+  getParentRoute: () => MarketsRoute,
+} as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
   path: '/auth/signup',
@@ -191,7 +209,7 @@ export interface FileRoutesByFullPath {
   '/executive': typeof ExecutiveRoute
   '/gis': typeof GisRoute
   '/intelligence': typeof IntelligenceRoute
-  '/markets': typeof MarketsRoute
+  '/markets': typeof MarketsRouteWithChildren
   '/notices': typeof NoticesRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
@@ -205,6 +223,9 @@ export interface FileRoutesByFullPath {
   '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/markets/collect': typeof MarketsCollectRoute
+  '/markets/register': typeof MarketsRegisterRoute
+  '/markets/traders': typeof MarketsTradersRoute
   '/properties/register': typeof PropertiesRegisterRoute
   '/properties/': typeof PropertiesIndexRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
@@ -221,7 +242,7 @@ export interface FileRoutesByTo {
   '/executive': typeof ExecutiveRoute
   '/gis': typeof GisRoute
   '/intelligence': typeof IntelligenceRoute
-  '/markets': typeof MarketsRoute
+  '/markets': typeof MarketsRouteWithChildren
   '/notices': typeof NoticesRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
@@ -235,6 +256,9 @@ export interface FileRoutesByTo {
   '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/markets/collect': typeof MarketsCollectRoute
+  '/markets/register': typeof MarketsRegisterRoute
+  '/markets/traders': typeof MarketsTradersRoute
   '/properties/register': typeof PropertiesRegisterRoute
   '/properties': typeof PropertiesIndexRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
@@ -252,7 +276,7 @@ export interface FileRoutesById {
   '/executive': typeof ExecutiveRoute
   '/gis': typeof GisRoute
   '/intelligence': typeof IntelligenceRoute
-  '/markets': typeof MarketsRoute
+  '/markets': typeof MarketsRouteWithChildren
   '/notices': typeof NoticesRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
@@ -266,6 +290,9 @@ export interface FileRoutesById {
   '/transport': typeof TransportRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/markets/collect': typeof MarketsCollectRoute
+  '/markets/register': typeof MarketsRegisterRoute
+  '/markets/traders': typeof MarketsTradersRoute
   '/properties/register': typeof PropertiesRegisterRoute
   '/properties/': typeof PropertiesIndexRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
@@ -298,6 +325,9 @@ export interface FileRouteTypes {
     | '/transport'
     | '/auth/login'
     | '/auth/signup'
+    | '/markets/collect'
+    | '/markets/register'
+    | '/markets/traders'
     | '/properties/register'
     | '/properties/'
     | '/api/public/seed-demo'
@@ -328,6 +358,9 @@ export interface FileRouteTypes {
     | '/transport'
     | '/auth/login'
     | '/auth/signup'
+    | '/markets/collect'
+    | '/markets/register'
+    | '/markets/traders'
     | '/properties/register'
     | '/properties'
     | '/api/public/seed-demo'
@@ -358,6 +391,9 @@ export interface FileRouteTypes {
     | '/transport'
     | '/auth/login'
     | '/auth/signup'
+    | '/markets/collect'
+    | '/markets/register'
+    | '/markets/traders'
     | '/properties/register'
     | '/properties/'
     | '/api/public/seed-demo'
@@ -375,7 +411,7 @@ export interface RootRouteChildren {
   ExecutiveRoute: typeof ExecutiveRoute
   GisRoute: typeof GisRoute
   IntelligenceRoute: typeof IntelligenceRoute
-  MarketsRoute: typeof MarketsRoute
+  MarketsRoute: typeof MarketsRouteWithChildren
   NoticesRoute: typeof NoticesRoute
   NotificationsRoute: typeof NotificationsRoute
   PaymentsRoute: typeof PaymentsRoute
@@ -571,6 +607,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropertiesRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/markets/traders': {
+      id: '/markets/traders'
+      path: '/traders'
+      fullPath: '/markets/traders'
+      preLoaderRoute: typeof MarketsTradersRouteImport
+      parentRoute: typeof MarketsRoute
+    }
+    '/markets/register': {
+      id: '/markets/register'
+      path: '/register'
+      fullPath: '/markets/register'
+      preLoaderRoute: typeof MarketsRegisterRouteImport
+      parentRoute: typeof MarketsRoute
+    }
+    '/markets/collect': {
+      id: '/markets/collect'
+      path: '/collect'
+      fullPath: '/markets/collect'
+      preLoaderRoute: typeof MarketsCollectRouteImport
+      parentRoute: typeof MarketsRoute
+    }
     '/auth/signup': {
       id: '/auth/signup'
       path: '/auth/signup'
@@ -595,6 +652,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MarketsRouteChildren {
+  MarketsCollectRoute: typeof MarketsCollectRoute
+  MarketsRegisterRoute: typeof MarketsRegisterRoute
+  MarketsTradersRoute: typeof MarketsTradersRoute
+}
+
+const MarketsRouteChildren: MarketsRouteChildren = {
+  MarketsCollectRoute: MarketsCollectRoute,
+  MarketsRegisterRoute: MarketsRegisterRoute,
+  MarketsTradersRoute: MarketsTradersRoute,
+}
+
+const MarketsRouteWithChildren =
+  MarketsRoute._addFileChildren(MarketsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -607,7 +679,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExecutiveRoute: ExecutiveRoute,
   GisRoute: GisRoute,
   IntelligenceRoute: IntelligenceRoute,
-  MarketsRoute: MarketsRoute,
+  MarketsRoute: MarketsRouteWithChildren,
   NoticesRoute: NoticesRoute,
   NotificationsRoute: NotificationsRoute,
   PaymentsRoute: PaymentsRoute,
@@ -628,3 +700,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

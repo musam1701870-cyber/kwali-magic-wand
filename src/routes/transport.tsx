@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { vehicles } from "@/lib/kwali-mock";
+import { LevyEducation } from "@/components/ui/LevyEducation";
 
 export const Route = createFileRoute("/transport")({
   head: () => ({ meta: [{ title: "Transport Ticketing — Kwali Revenue Portal" }] }),
@@ -40,6 +41,9 @@ function TransportPage() {
 
   return (
     <DashboardShell title="Transport ticketing" subtitle="Buy daily tickets, manage QR stickers and view active permits.">
+      <div className="mb-6">
+        <LevyEducation category="transport" />
+      </div>
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Buy ticket */}
         <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] lg:col-span-2">

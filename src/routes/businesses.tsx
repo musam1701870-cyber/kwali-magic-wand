@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { businesses as seedBusinesses, businessCategories, wards } from "@/lib/kwali-mock";
+import { LevyEducation } from "@/components/ui/LevyEducation";
 
 export const Route = createFileRoute("/businesses")({
   head: () => ({ meta: [{ title: "Business Registry — Kwali Smart Revenue Platform" }] }),
@@ -329,6 +330,11 @@ function RegisterModal({ onClose, onSave }: { onClose: () => void; onSave: (b: R
             <p className="text-xs text-muted-foreground">Captures full location & ownership details for tracking.</p>
           </div>
           <button type="button" onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-secondary">✕</button>
+        </div>
+
+        {/* Legal education panel */}
+        <div className="mt-4">
+          <LevyEducation category="business" />
         </div>
 
         <Section title="Business details">

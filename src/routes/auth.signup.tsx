@@ -9,6 +9,7 @@ import imgBusiness from "@/assets/cat-business.jpg";
 import imgProperty from "@/assets/cat-property.jpg";
 import imgMarket from "@/assets/cat-market.jpg";
 import imgTransport from "@/assets/cat-transport.jpg";
+import { LevyEducation } from "@/components/ui/LevyEducation";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({ meta: [{ title: "Create taxpayer account — Kwali Revenue Portal" }] }),
@@ -24,6 +25,7 @@ function SignupPage() {
   const [ward, setWard] = useState(wards[0]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState<"property" | "business" | "transport" | "market" | "">(""); 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +38,7 @@ function SignupPage() {
       email, password,
       options: {
         emailRedirectTo: `${window.location.origin}/portal`,
-        data: { full_name: `${first} ${last}`.trim(), phone, ward },
+        data: { full_name: `${first} ${last}`.trim(), phone, ward, account_type: accountType },
       },
     });
     setSubmitting(false);
@@ -50,6 +52,13 @@ function SignupPage() {
     if (result.error) setError(result.error.message);
     else if (!result.redirected) navigate({ to: "/portal" });
   };
+
+  const accountTypes = [
+    { id: "property" as const, label: "Property Owner", desc: "Residential or commercial building", img: imgProperty },
+    { id: "business" as const, label: "Business Owner", desc: "Shop, office, hotel, POS, etc.", img: imgBusiness },
+    { id: "market" as const, label: "Market Trader", desc: "Stall, hawker, table-top", img: imgMarket },
+    { id: "transport" as const, label: "Transport Operator", desc: "Keke, okada, commercial vehicle", img: imgTransport },
+  ];
 
   return (
     <div className="grid min-h-screen md:grid-cols-2">
@@ -96,6 +105,40 @@ function SignupPage() {
             <h1 className="mt-3 font-display text-3xl font-bold text-ink">Create taxpayer account</h1>
             <p className="mt-1 text-sm text-muted-foreground">Step 1: account. Step 2: register your business in your portal.</p>
           </div>
+
+          {/* Account type selector */}
+          <div>
+            <label className="text-sm font-semibold text-ink">I am registering as a…</label>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {accountTypes.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setAccountType(t.id)}
+                  className={`group relative overflow-hidden rounded-xl border-2 p-3 text-left transition ${
+                    accountType === t.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <div className="relative z-10">
+                    <div className="text-xs font-bold text-ink">{t.label}</div>
+                    <div className="text-[10px] text-muted-foreground">{t.desc}</div>
+                  </div>
+                  {accountType === t.id && (
+                    <div className="absolute right-2 top-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                      <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Contextual legal education */}
+          {accountType && (
+            <LevyEducation category={accountType} />
+          )}
 
           <button type="button" onClick={google}
             className="w-full rounded-md border border-border bg-card py-2.5 text-sm font-semibold hover:bg-secondary">

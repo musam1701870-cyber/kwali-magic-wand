@@ -12,4 +12,9 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  nitro: {
+    // Use vercel preset when NITRO_PRESET=vercel (set in Vercel env vars),
+    // otherwise fall back to the default (cloudflare for local/lovable builds)
+    preset: (process.env.NITRO_PRESET as "vercel" | "cloudflare-pages" | undefined) ?? undefined,
+  },
 });

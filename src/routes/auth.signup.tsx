@@ -4,6 +4,11 @@ import crest from "@/assets/kwali-crest.png";
 import { wards } from "@/lib/kwali-mock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import heroBg from "@/assets/abuja-city-gate.jpg";
+import imgBusiness from "@/assets/cat-business.jpg";
+import imgProperty from "@/assets/cat-property.jpg";
+import imgMarket from "@/assets/cat-market.jpg";
+import imgTransport from "@/assets/cat-transport.jpg";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({ meta: [{ title: "Create taxpayer account — Kwali Revenue Portal" }] }),
@@ -48,23 +53,40 @@ function SignupPage() {
 
   return (
     <div className="grid min-h-screen md:grid-cols-2">
-      <div className="hidden flex-col justify-between p-12 text-primary-foreground md:flex" style={{ background: "var(--gradient-hero)" }}>
-        <Link to="/" className="flex items-center gap-3">
+      <div className="relative hidden flex-col justify-between overflow-hidden p-12 text-primary-foreground md:flex">
+        <img src={heroBg} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a1f1a]/95 via-[#0f4c3a]/85 to-[#0a1f1a]/70" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(201,168,76,0.18),transparent_60%)]" />
+        <Link to="/" className="relative flex items-center gap-3">
           <img src={crest} alt="" className="h-10 w-10" />
           <div>
             <div className="font-display font-bold">Kwali Area Council</div>
             <div className="text-xs uppercase tracking-widest text-white/70">Smart Revenue Platform</div>
           </div>
         </Link>
-        <div>
+        <div className="relative">
           <h2 className="font-display text-3xl font-bold">Create your taxpayer account.</h2>
           <ul className="mt-4 space-y-2 text-sm text-white/85">
             <li>✓ Register your business or property online</li>
             <li>✓ Receive automatic bills and digital receipts</li>
             <li>✓ Pay levies securely from your dashboard</li>
           </ul>
+          <div className="mt-8 grid grid-cols-4 gap-2">
+            {[
+              { img: imgBusiness, label: "Business" },
+              { img: imgProperty, label: "Property" },
+              { img: imgMarket, label: "Markets" },
+              { img: imgTransport, label: "Transport" },
+            ].map((c) => (
+              <div key={c.label} className="relative overflow-hidden rounded-lg border border-white/15">
+                <img src={c.img} alt={c.label} className="aspect-square h-full w-full object-cover" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-1 left-1.5 text-[10px] font-bold uppercase tracking-wider text-white">{c.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="text-xs text-white/60">© Kwali Area Council</div>
+        <div className="relative text-xs text-white/60">© Kwali Area Council · FCT</div>
       </div>
 
       <div className="flex items-center justify-center bg-background p-8">

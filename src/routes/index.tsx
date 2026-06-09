@@ -274,18 +274,18 @@ function CTA() {
           Join thousands of property owners, businesses and transport operators paying with KURCMS.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <a
-            href="#"
-            className="inline-flex items-center rounded-md bg-gold px-6 py-3 text-sm font-bold text-gold-foreground hover:opacity-95"
+          <Link
+            to="/auth/signup"
+            className="inline-flex items-center rounded-md bg-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-lg transition hover:-translate-y-0.5 hover:opacity-95"
           >
-            Create an account
-          </a>
-          <a
-            href="#"
-            className="inline-flex items-center rounded-md border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
+            Create an account →
+          </Link>
+          <Link
+            to="/auth/login"
+            className="inline-flex items-center rounded-md border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
           >
             Sign in
-          </a>
+          </Link>
         </div>
       </div>
     </section>

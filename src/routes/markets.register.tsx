@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { markets, tradeTypes, marketZoneNames, wards } from "@/lib/kwali-mock";
+import { markets, tradeTypes, marketZoneNames, wards, assetTypes } from "@/lib/kwali-mock";
+import type { AssetType } from "@/lib/kwali-mock";
 import { LevyEducation } from "@/components/ui/LevyEducation";
 import {
   UserPlus,
@@ -29,6 +30,7 @@ type FormState = {
   tradeType: string;
   zone: string;
   category: string;
+  assetType: AssetType;
   emergencyContact: string;
   emergencyPhone: string;
   passType: string;
@@ -36,7 +38,7 @@ type FormState = {
 
 const blank: FormState = {
   name: "", phone: "", nin: "", gender: "", ward: "", village: "",
-  marketId: "", tradeType: "", zone: "", category: "C",
+  marketId: "", tradeType: "", zone: "", category: "C", assetType: "None / Market Trader Only",
   emergencyContact: "", emergencyPhone: "", passType: "Daily",
 };
 
@@ -53,7 +55,7 @@ function QRPlaceholder({ traderId }: { traderId: string }) {
   );
 }
 
-function TraderCard({ traderId, name, tradeType, market }: { traderId: string; name: string; tradeType: string; market: string }) {
+function TraderCard({ traderId, name, tradeType, market, assetType }: { traderId: string; name: string; tradeType: string; market: string; assetType?: string }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   return (
     <div className="overflow-hidden rounded-2xl border-2 border-primary shadow-[var(--shadow-elegant)]" style={{ width: 280 }}>
@@ -75,6 +77,12 @@ function TraderCard({ traderId, name, tradeType, market }: { traderId: string; n
           <div className="text-xs font-semibold text-foreground">{tradeType}</div>
           <div className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Market</div>
           <div className="text-xs font-semibold text-foreground">{market}</div>
+          {assetType && assetType !== "None / Market Trader Only" && (
+            <>
+              <div className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Assets</div>
+              <div className="text-xs font-semibold text-foreground">{assetType}</div>
+            </>
+          )}
           <div className="mt-3 rounded-md bg-primary/8 px-2 py-1 text-center">
             <div className="font-mono text-xs font-bold text-primary">{traderId}</div>
           </div>
@@ -98,7 +106,7 @@ function RegisterTraderPage() {
   const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const valid = form.name && form.phone && form.gender && form.ward && form.marketId && form.tradeType && form.zone && form.category;
+  const valid = form.name && form.phone && form.gender && form.ward && form.marketId && form.tradeType && form.zone && form.category && form.assetType;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,6 +240,15 @@ function RegisterTraderPage() {
                   </select>
                   <p className="mt-1 text-[11px] text-muted-foreground">A = Rice, Electronics, Building Materials · B = Fashion, Foodstuff · C = Vegetables, Tomatoes</p>
                 </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-ink">Assets / Business Type <span className="text-destructive">*</span></label>
+                  <select value={form.assetType} onChange={set("assetType")} required
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none ring-primary/30 transition focus:ring-2">
+                    <option value="">Select asset type</option>
+                    {assetTypes.map((a) => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                  <p className="mt-1 text-[11px] text-muted-foreground">Physical/business assets owned or operated by the trader. Select "None" if market trader only.</p>
+                </div>
                 <div>
                   <label className="block text-sm font-semibold text-ink">Preferred Pass Type</label>
                   <select value={form.passType} onChange={set("passType")}
@@ -315,6 +332,7 @@ function RegisterTraderPage() {
                 name={form.name}
                 tradeType={form.tradeType || "—"}
                 market={selectedMarket?.name ?? "—"}
+                assetType={form.assetType}
               />
             </div>
           </div>
@@ -328,7 +346,8 @@ function RegisterTraderPage() {
                 ["Gender", form.gender], ["Ward", form.ward],
                 ["Market", selectedMarket?.name ?? "—"], ["Trade Type", form.tradeType],
                 ["Zone", form.zone], ["Category", `Category ${form.category}`],
-                ["Pass Type", form.passType], ["NIN", form.nin || "Not provided"],
+                ["Assets", form.assetType], ["Pass Type", form.passType],
+                ["NIN", form.nin || "Not provided"], ["Village", form.village || "—"],
               ].map(([l, v]) => (
                 <div key={l} className="flex flex-col">
                   <dt className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{l}</dt>

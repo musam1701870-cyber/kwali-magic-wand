@@ -55,6 +55,7 @@ function TraderRow({ t, onClick }: { t: Trader; onClick: () => void }) {
       </td>
       <td className="hidden px-4 py-3.5 text-sm text-foreground md:table-cell">{t.tradeType}</td>
       <td className="hidden px-4 py-3.5 text-sm text-muted-foreground lg:table-cell">{t.marketName}</td>
+      <td className="hidden px-4 py-3.5 text-sm text-muted-foreground lg:table-cell">{t.assetType !== "None / Market Trader Only" ? t.assetType : "—"}</td>
       <td className="hidden px-4 py-3.5 lg:table-cell"><CategoryBadge cat={t.category} /></td>
       <td className="hidden px-4 py-3.5 sm:table-cell"><PaidBadge paid={t.paidToday} /></td>
       <td className="hidden px-4 py-3.5 xl:table-cell"><ComplianceBadge score={t.complianceScore} /></td>
@@ -121,6 +122,7 @@ function TraderDrawer({ t, onClose }: { t: Trader; onClose: () => void }) {
                 ["Trade Type", t.tradeType],
                 ["Zone", t.zone],
                 ["Category", `Category ${t.category}`],
+                ["Assets", t.assetType],
                 ["Pass Type", t.passType],
                 ["Daily Rate", `₦${t.dailyRate}`],
                 ["Monthly Rate", `₦${t.monthlyRate.toLocaleString()}`],
@@ -281,6 +283,7 @@ function TradersPage() {
                 <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Trader</th>
                 <th className="hidden px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-muted-foreground md:table-cell">Trade Type</th>
                 <th className="hidden px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-muted-foreground lg:table-cell">Market</th>
+                <th className="hidden px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-muted-foreground lg:table-cell">Assets</th>
                 <th className="hidden px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-muted-foreground lg:table-cell">Category</th>
                 <th className="hidden px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-muted-foreground sm:table-cell">Today</th>
                 <th className="hidden px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-muted-foreground xl:table-cell">Score</th>
@@ -289,7 +292,7 @@ function TradersPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">No traders match your search.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground">No traders match your search.</td></tr>
               ) : (
                 filtered.map((t) => <TraderRow key={t.id} t={t} onClick={() => setSelected(t)} />)
               )}

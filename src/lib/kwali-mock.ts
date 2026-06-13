@@ -277,6 +277,20 @@ export const marketZoneNames = [
   "Frozen Foods Zone", "Building Materials Zone", "General Zone",
 ] as const;
 
+/** Asset types for traders — physical/business assets owned/operated */
+export const assetTypes = [
+  "Company & Offices",
+  "Land & Signage",
+  "Shop, Market Stall & POS Operator",
+  "Hotel & Event Centers",
+  "Taxis, Okada & Vehicles",
+  "Wastes & Sanitation",
+  "Certificate & Land Papers",
+  "None / Market Trader Only",
+] as const;
+
+export type AssetType = (typeof assetTypes)[number];
+
 /** Category A = large traders, B = medium, C = small/informal */
 export type TraderCategory = "A" | "B" | "C";
 export type TraderStatus = "Active" | "Inactive" | "Suspended";
@@ -296,6 +310,7 @@ export type Trader = {
   ward: string;
   village?: string;
   emergencyContact?: string;
+  assetType: AssetType;   // physical/business assets
   category: TraderCategory;
   zone: string;
   status: TraderStatus;
@@ -312,7 +327,7 @@ export type Trader = {
 const mkTrader = (
   n: number, name: string, phone: string, marketId: string, marketName: string,
   tradeType: string, gender: "Male" | "Female", ward: string, category: TraderCategory,
-  zone: string, paidToday: boolean, complianceScore: number, passType: PassType = "Daily",
+  zone: string, paidToday: boolean, complianceScore: number, assetType: AssetType = "None / Market Trader Only", passType: PassType = "Daily",
 ): Trader => {
   const pad = String(n).padStart(6, "0");
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -320,7 +335,7 @@ const mkTrader = (
   return {
     id: `tr${n}`, traderId: `KWL-TRD-${pad}`, name, phone, initials,
     marketId, marketName, tradeType, gender, ward,
-    category, zone, status: "Active", registeredAt: "2026-05-15",
+    assetType, category, zone, status: "Active", registeredAt: "2026-05-15",
     passType, paidToday, lastPaid: paidToday ? "2026-06-09" : "2026-06-06",
     totalPayments: Math.round(complianceScore * 1.2), complianceScore,
     dailyRate, monthlyRate: dailyRate * 20,
@@ -328,16 +343,16 @@ const mkTrader = (
 };
 
 export const traders: Trader[] = [
-  mkTrader(1, "Mary Yakubu", "0803-441-2210", "m1", "Kwali Central Market", "Vegetables & Tomatoes", "Female", "Kwali", "C", "Vegetable Zone", true, 98),
-  mkTrader(2, "Aisha Musa", "0814-552-3301", "m1", "Kwali Central Market", "Grains & Foodstuff", "Female", "Kwali", "B", "Grain & Foodstuff Zone", true, 91),
-  mkTrader(3, "Ibrahim Sule", "0901-113-4490", "m1", "Kwali Central Market", "Rice & Grains (Wholesale)", "Male", "Kwali", "A", "Grain & Foodstuff Zone", true, 87),
-  mkTrader(4, "Hauwa Danladi", "0815-220-7712", "m1", "Kwali Central Market", "Clothing & Fashion", "Female", "Yangoji", "B", "Fashion & Clothing Zone", false, 72),
-  mkTrader(5, "Sani Bello", "0703-881-2200", "m1", "Kwali Central Market", "Electronics & Accessories", "Male", "Kwali", "A", "Electronics Zone", true, 94),
+  mkTrader(1, "Mary Yakubu", "0803-441-2210", "m1", "Kwali Central Market", "Vegetables & Tomatoes", "Female", "Kwali", "C", "Vegetable Zone", true, 98, "Shop, Market Stall & POS Operator"),
+  mkTrader(2, "Aisha Musa", "0814-552-3301", "m1", "Kwali Central Market", "Grains & Foodstuff", "Female", "Kwali", "B", "Grain & Foodstuff Zone", true, 91, "Land & Signage"),
+  mkTrader(3, "Ibrahim Sule", "0901-113-4490", "m1", "Kwali Central Market", "Rice & Grains (Wholesale)", "Male", "Kwali", "A", "Grain & Foodstuff Zone", true, 87, "Company & Offices"),
+  mkTrader(4, "Hauwa Danladi", "0815-220-7712", "m1", "Kwali Central Market", "Clothing & Fashion", "Female", "Yangoji", "B", "Fashion & Clothing Zone", false, 72, "Shop, Market Stall & POS Operator"),
+  mkTrader(5, "Sani Bello", "0703-881-2200", "m1", "Kwali Central Market", "Electronics & Accessories", "Male", "Kwali", "A", "Electronics Zone", true, 94, "Company & Offices"),
   mkTrader(6, "Fatima Umar", "0906-330-1199", "m1", "Kwali Central Market", "Pepper & Spices", "Female", "Kwali", "C", "Vegetable Zone", true, 100),
-  mkTrader(7, "Musa Garba", "0812-001-4482", "m1", "Kwali Central Market", "Provisions & Grocery", "Male", "Wako", "B", "Provisions Zone", false, 55),
+  mkTrader(7, "Musa Garba", "0812-001-4482", "m1", "Kwali Central Market", "Provisions & Grocery", "Male", "Wako", "B", "Provisions Zone", false, 55, "Hotel & Event Centers"),
   mkTrader(8, "Blessing Eze", "0803-774-9901", "m1", "Kwali Central Market", "Cosmetics & Personal Care", "Female", "Kwali", "C", "General Zone", true, 88),
   mkTrader(9, "Adamu Bako", "0705-662-3318", "m2", "Yangoji Daily Market", "Vegetables & Tomatoes", "Male", "Yangoji", "C", "Vegetable Zone", true, 96),
-  mkTrader(10, "Zainab Ahmed", "0811-443-7721", "m2", "Yangoji Daily Market", "Frozen Foods & Fish", "Female", "Yangoji", "B", "Frozen Foods Zone", false, 61),
+  mkTrader(10, "Zainab Ahmed", "0811-443-7721", "m2", "Yangoji Daily Market", "Frozen Foods & Fish", "Female", "Yangoji", "B", "Frozen Foods Zone", false, 61, "Taxis, Okada & Vehicles"),
   mkTrader(11, "Isah Yusuf", "0902-551-8803", "m2", "Yangoji Daily Market", "Livestock & Poultry", "Male", "Dafa", "A", "Livestock Zone", true, 78),
   mkTrader(12, "Ramatu Bello", "0803-223-5514", "m2", "Yangoji Daily Market", "Fruits & Produce", "Female", "Yangoji", "C", "Vegetable Zone", true, 90),
   mkTrader(13, "Tanimu Lawal", "0814-119-2243", "m2", "Yangoji Daily Market", "Shoes & Leather Goods", "Male", "Kwali", "B", "Fashion & Clothing Zone", false, 44),

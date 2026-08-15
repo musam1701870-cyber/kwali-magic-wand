@@ -3,15 +3,61 @@ import { createFileRoute } from "@tanstack/react-router";
 const DEMO_PASSWORD = "Kwali2026!";
 
 const DEMO_USERS = [
-  { email: "admin@kwali.demo",    full_name: "Aisha Bello",   phone: "08030000001", ward: "Kwali",   role: "admin"    as const },
-  { email: "officer@kwali.demo",  full_name: "Tunde Okafor",  phone: "08030000002", ward: "Yangoji", role: "officer"  as const },
-  { email: "taxpayer@kwali.demo", full_name: "Grace Adamu",   phone: "08030000003", ward: "Dafa",    role: "taxpayer" as const },
+  {
+    email: "admin@kwali.demo",
+    full_name: "Aisha Bello",
+    phone: "08030000001",
+    ward: "Kwali",
+    role: "admin" as const,
+  },
+  {
+    email: "officer@kwali.demo",
+    full_name: "Tunde Okafor",
+    phone: "08030000002",
+    ward: "Yangoji",
+    role: "officer" as const,
+  },
+  {
+    email: "marshal@kwali.demo",
+    full_name: "Ibrahim Suleiman",
+    phone: "08030000004",
+    ward: "Kwali",
+    role: "marshal" as const,
+  },
+  {
+    email: "taxpayer@kwali.demo",
+    full_name: "Grace Adamu",
+    phone: "08030000003",
+    ward: "Dafa",
+    role: "taxpayer" as const,
+  },
 ];
 
 const SAMPLE_BUSINESSES = [
-  { business_name: "Adamu Grocery Stores",   category: "Retail / General Merchandise", ward: "Dafa",    annual_rate: 25000,  status: "Active",  obligations: ["Business Premises", "Sanitation"] },
-  { business_name: "Kwali Quick POS",        category: "POS Operator / Agent Banking", ward: "Kwali",   annual_rate: 15000,  status: "Pending", obligations: ["Business Premises"] },
-  { business_name: "Grace Hotel & Suites",   category: "Hotel / Lodge / Guest House",  ward: "Yangoji", annual_rate: 120000, status: "Active",  obligations: ["Business Premises", "Hospitality Levy"] },
+  {
+    business_name: "Adamu Grocery Stores",
+    category: "Retail / General Merchandise",
+    ward: "Dafa",
+    annual_rate: 25000,
+    status: "Active",
+    obligations: ["Business Premises", "Sanitation"],
+  },
+  {
+    business_name: "Kwali Quick POS",
+    category: "POS Operator / Agent Banking",
+    ward: "Kwali",
+    annual_rate: 15000,
+    status: "Pending",
+    obligations: ["Business Premises"],
+  },
+  {
+    business_name: "Grace Hotel & Suites",
+    category: "Hotel / Lodge / Guest House",
+    ward: "Yangoji",
+    annual_rate: 120000,
+    status: "Active",
+    obligations: ["Business Premises", "Hospitality Levy"],
+  },
 ];
 
 export const Route = createFileRoute("/api/public/seed-demo")({
@@ -54,19 +100,27 @@ async function handle() {
         status = "created";
       } else {
         // Reset password so the printed credentials always work.
-        await supabaseAdmin.auth.admin.updateUserById(userId, { password: DEMO_PASSWORD, email_confirm: true });
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          password: DEMO_PASSWORD,
+          email_confirm: true,
+        });
       }
 
       // Ensure profile row (trigger creates it on insert; safety upsert for pre-existing users).
       await supabaseAdmin.from("profiles").upsert({
-        id: userId, full_name: u.full_name, phone: u.phone, ward: u.ward,
+        id: userId,
+        full_name: u.full_name,
+        phone: u.phone,
+        ward: u.ward,
       });
 
       // Ensure correct role. The new-user trigger gives every user 'taxpayer';
       // add admin/officer for the non-taxpayer demos.
       if (u.role !== "taxpayer") {
         const { data: existingRoles } = await supabaseAdmin
-          .from("user_roles").select("role").eq("user_id", userId);
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId);
         const has = (existingRoles ?? []).some((r) => r.role === u.role);
         if (!has) {
           await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: u.role });
@@ -76,7 +130,9 @@ async function handle() {
       // Seed businesses for the taxpayer demo account only.
       if (u.role === "taxpayer") {
         const { count } = await supabaseAdmin
-          .from("businesses").select("id", { count: "exact", head: true }).eq("owner_id", userId);
+          .from("businesses")
+          .select("id", { count: "exact", head: true })
+          .eq("owner_id", userId);
         if (!count) {
           const rows = SAMPLE_BUSINESSES.map((b, i) => ({
             owner_id: userId!,
@@ -105,7 +161,8 @@ async function handle() {
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Seed failed";
     return new Response(JSON.stringify({ ok: false, error: message }), {
-      status: 500, headers: { "content-type": "application/json" },
+      status: 500,
+      headers: { "content-type": "application/json" },
     });
   }
 }

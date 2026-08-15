@@ -9,186 +9,156 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TransportRouteImport } from './routes/transport'
-import { Route as TaxpayersRouteImport } from './routes/taxpayers'
-import { Route as ServicesRouteImport } from './routes/services'
-import { Route as SanitationRouteImport } from './routes/sanitation'
-import { Route as RevenueCenterRouteImport } from './routes/revenue-center'
-import { Route as ReportsRouteImport } from './routes/reports'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as PortalRouteImport } from './routes/portal'
-import { Route as PaymentsRouteImport } from './routes/payments'
-import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as NoticesRouteImport } from './routes/notices'
-import { Route as MarketsRouteImport } from './routes/markets'
-import { Route as IntelligenceRouteImport } from './routes/intelligence'
-import { Route as GisRouteImport } from './routes/gis'
-import { Route as ExecutiveRouteImport } from './routes/executive'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as ComplianceRouteImport } from './routes/compliance'
-import { Route as CommandCenterRouteImport } from './routes/command-center'
-import { Route as BylawsRouteImport } from './routes/bylaws'
-import { Route as BusinessesRouteImport } from './routes/businesses'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as PropertiesIndexRouteImport } from './routes/properties.index'
-import { Route as PropertiesRegisterRouteImport } from './routes/properties.register'
-import { Route as MarketsTradersRouteImport } from './routes/markets.traders'
-import { Route as MarketsRegisterRouteImport } from './routes/markets.register'
-import { Route as MarketsCollectRouteImport } from './routes/markets.collect'
-import { Route as AuthSignupRouteImport } from './routes/auth.signup'
-import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as publicIndexRouteImport } from './routes/(public)/index'
+import { Route as publicRegisterRouteImport } from './routes/(public)/register'
+import { Route as publicContactRouteImport } from './routes/(public)/contact'
+import { Route as publicAboutRouteImport } from './routes/(public)/about'
+import { Route as dashboardPortalRouteImport } from './routes/(dashboard)/portal'
+import { Route as dashboardDashboardRouteImport } from './routes/(dashboard)/dashboard'
+import { Route as adminTransportRouteImport } from './routes/(admin)/transport'
+import { Route as adminTaxpayersRouteImport } from './routes/(admin)/taxpayers'
+import { Route as adminServicesRouteImport } from './routes/(admin)/services'
+import { Route as adminSanitationRouteImport } from './routes/(admin)/sanitation'
+import { Route as adminRevenueCenterRouteImport } from './routes/(admin)/revenue-center'
+import { Route as adminReportsRouteImport } from './routes/(admin)/reports'
+import { Route as adminPaymentsRouteImport } from './routes/(admin)/payments'
+import { Route as adminNotificationsRouteImport } from './routes/(admin)/notifications'
+import { Route as adminNoticesRouteImport } from './routes/(admin)/notices'
+import { Route as adminMarketsRouteImport } from './routes/(admin)/markets'
+import { Route as adminIntelligenceRouteImport } from './routes/(admin)/intelligence'
+import { Route as adminGisRouteImport } from './routes/(admin)/gis'
+import { Route as adminExecutiveRouteImport } from './routes/(admin)/executive'
+import { Route as adminComplianceRouteImport } from './routes/(admin)/compliance'
+import { Route as adminCommandCenterRouteImport } from './routes/(admin)/command-center'
+import { Route as adminBylawsRouteImport } from './routes/(admin)/bylaws'
+import { Route as adminBusinessesRouteImport } from './routes/(admin)/businesses'
+import { Route as publicPropertiesIndexRouteImport } from './routes/(public)/properties.index'
 import { Route as ApiPublicSeedDemoRouteImport } from './routes/api/public/seed-demo'
+import { Route as publicPropertiesRegisterRouteImport } from './routes/(public)/properties.register'
+import { Route as authAuthSignupRouteImport } from './routes/(auth)/auth.signup'
+import { Route as authAuthLoginRouteImport } from './routes/(auth)/auth.login'
+import { Route as adminMarketsTradersRouteImport } from './routes/(admin)/markets.traders'
+import { Route as adminMarketsRegisterRouteImport } from './routes/(admin)/markets.register'
+import { Route as adminMarketsCollectRouteImport } from './routes/(admin)/markets.collect'
 
-const TransportRoute = TransportRouteImport.update({
-  id: '/transport',
-  path: '/transport',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TaxpayersRoute = TaxpayersRouteImport.update({
-  id: '/taxpayers',
-  path: '/taxpayers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesRoute = ServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SanitationRoute = SanitationRouteImport.update({
-  id: '/sanitation',
-  path: '/sanitation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RevenueCenterRoute = RevenueCenterRouteImport.update({
-  id: '/revenue-center',
-  path: '/revenue-center',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PortalRoute = PortalRouteImport.update({
-  id: '/portal',
-  path: '/portal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PaymentsRoute = PaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotificationsRoute = NotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NoticesRoute = NoticesRouteImport.update({
-  id: '/notices',
-  path: '/notices',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MarketsRoute = MarketsRouteImport.update({
-  id: '/markets',
-  path: '/markets',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IntelligenceRoute = IntelligenceRouteImport.update({
-  id: '/intelligence',
-  path: '/intelligence',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GisRoute = GisRouteImport.update({
-  id: '/gis',
-  path: '/gis',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExecutiveRoute = ExecutiveRouteImport.update({
-  id: '/executive',
-  path: '/executive',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComplianceRoute = ComplianceRouteImport.update({
-  id: '/compliance',
-  path: '/compliance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommandCenterRoute = CommandCenterRouteImport.update({
-  id: '/command-center',
-  path: '/command-center',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BylawsRoute = BylawsRouteImport.update({
-  id: '/bylaws',
-  path: '/bylaws',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BusinessesRoute = BusinessesRouteImport.update({
-  id: '/businesses',
-  path: '/businesses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
+const publicIndexRoute = publicIndexRouteImport.update({
+  id: '/(public)/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PropertiesIndexRoute = PropertiesIndexRouteImport.update({
-  id: '/properties/',
-  path: '/properties/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PropertiesRegisterRoute = PropertiesRegisterRouteImport.update({
-  id: '/properties/register',
-  path: '/properties/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MarketsTradersRoute = MarketsTradersRouteImport.update({
-  id: '/traders',
-  path: '/traders',
-  getParentRoute: () => MarketsRoute,
-} as any)
-const MarketsRegisterRoute = MarketsRegisterRouteImport.update({
-  id: '/register',
+const publicRegisterRoute = publicRegisterRouteImport.update({
+  id: '/(public)/register',
   path: '/register',
-  getParentRoute: () => MarketsRoute,
-} as any)
-const MarketsCollectRoute = MarketsCollectRouteImport.update({
-  id: '/collect',
-  path: '/collect',
-  getParentRoute: () => MarketsRoute,
-} as any)
-const AuthSignupRoute = AuthSignupRouteImport.update({
-  id: '/auth/signup',
-  path: '/auth/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
+const publicContactRoute = publicContactRouteImport.update({
+  id: '/(public)/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const publicAboutRoute = publicAboutRouteImport.update({
+  id: '/(public)/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const dashboardPortalRoute = dashboardPortalRouteImport.update({
+  id: '/(dashboard)/portal',
+  path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const dashboardDashboardRoute = dashboardDashboardRouteImport.update({
+  id: '/(dashboard)/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminTransportRoute = adminTransportRouteImport.update({
+  id: '/(admin)/transport',
+  path: '/transport',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminTaxpayersRoute = adminTaxpayersRouteImport.update({
+  id: '/(admin)/taxpayers',
+  path: '/taxpayers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminServicesRoute = adminServicesRouteImport.update({
+  id: '/(admin)/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminSanitationRoute = adminSanitationRouteImport.update({
+  id: '/(admin)/sanitation',
+  path: '/sanitation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminRevenueCenterRoute = adminRevenueCenterRouteImport.update({
+  id: '/(admin)/revenue-center',
+  path: '/revenue-center',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminReportsRoute = adminReportsRouteImport.update({
+  id: '/(admin)/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminPaymentsRoute = adminPaymentsRouteImport.update({
+  id: '/(admin)/payments',
+  path: '/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminNotificationsRoute = adminNotificationsRouteImport.update({
+  id: '/(admin)/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminNoticesRoute = adminNoticesRouteImport.update({
+  id: '/(admin)/notices',
+  path: '/notices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminMarketsRoute = adminMarketsRouteImport.update({
+  id: '/(admin)/markets',
+  path: '/markets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminIntelligenceRoute = adminIntelligenceRouteImport.update({
+  id: '/(admin)/intelligence',
+  path: '/intelligence',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminGisRoute = adminGisRouteImport.update({
+  id: '/(admin)/gis',
+  path: '/gis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminExecutiveRoute = adminExecutiveRouteImport.update({
+  id: '/(admin)/executive',
+  path: '/executive',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminComplianceRoute = adminComplianceRouteImport.update({
+  id: '/(admin)/compliance',
+  path: '/compliance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminCommandCenterRoute = adminCommandCenterRouteImport.update({
+  id: '/(admin)/command-center',
+  path: '/command-center',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminBylawsRoute = adminBylawsRouteImport.update({
+  id: '/(admin)/bylaws',
+  path: '/bylaws',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminBusinessesRoute = adminBusinessesRouteImport.update({
+  id: '/(admin)/businesses',
+  path: '/businesses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const publicPropertiesIndexRoute = publicPropertiesIndexRouteImport.update({
+  id: '/(public)/properties/',
+  path: '/properties/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicSeedDemoRoute = ApiPublicSeedDemoRouteImport.update({
@@ -196,118 +166,145 @@ const ApiPublicSeedDemoRoute = ApiPublicSeedDemoRouteImport.update({
   path: '/api/public/seed-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const publicPropertiesRegisterRoute =
+  publicPropertiesRegisterRouteImport.update({
+    id: '/(public)/properties/register',
+    path: '/properties/register',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const authAuthSignupRoute = authAuthSignupRouteImport.update({
+  id: '/(auth)/auth/signup',
+  path: '/auth/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authAuthLoginRoute = authAuthLoginRouteImport.update({
+  id: '/(auth)/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminMarketsTradersRoute = adminMarketsTradersRouteImport.update({
+  id: '/traders',
+  path: '/traders',
+  getParentRoute: () => adminMarketsRoute,
+} as any)
+const adminMarketsRegisterRoute = adminMarketsRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => adminMarketsRoute,
+} as any)
+const adminMarketsCollectRoute = adminMarketsCollectRouteImport.update({
+  id: '/collect',
+  path: '/collect',
+  getParentRoute: () => adminMarketsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/businesses': typeof BusinessesRoute
-  '/bylaws': typeof BylawsRoute
-  '/command-center': typeof CommandCenterRoute
-  '/compliance': typeof ComplianceRoute
-  '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
-  '/executive': typeof ExecutiveRoute
-  '/gis': typeof GisRoute
-  '/intelligence': typeof IntelligenceRoute
-  '/markets': typeof MarketsRouteWithChildren
-  '/notices': typeof NoticesRoute
-  '/notifications': typeof NotificationsRoute
-  '/payments': typeof PaymentsRoute
-  '/portal': typeof PortalRoute
-  '/register': typeof RegisterRoute
-  '/reports': typeof ReportsRoute
-  '/revenue-center': typeof RevenueCenterRoute
-  '/sanitation': typeof SanitationRoute
-  '/services': typeof ServicesRoute
-  '/taxpayers': typeof TaxpayersRoute
-  '/transport': typeof TransportRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
-  '/markets/collect': typeof MarketsCollectRoute
-  '/markets/register': typeof MarketsRegisterRoute
-  '/markets/traders': typeof MarketsTradersRoute
-  '/properties/register': typeof PropertiesRegisterRoute
-  '/properties/': typeof PropertiesIndexRoute
+  '/businesses': typeof adminBusinessesRoute
+  '/bylaws': typeof adminBylawsRoute
+  '/command-center': typeof adminCommandCenterRoute
+  '/compliance': typeof adminComplianceRoute
+  '/executive': typeof adminExecutiveRoute
+  '/gis': typeof adminGisRoute
+  '/intelligence': typeof adminIntelligenceRoute
+  '/markets': typeof adminMarketsRouteWithChildren
+  '/notices': typeof adminNoticesRoute
+  '/notifications': typeof adminNotificationsRoute
+  '/payments': typeof adminPaymentsRoute
+  '/reports': typeof adminReportsRoute
+  '/revenue-center': typeof adminRevenueCenterRoute
+  '/sanitation': typeof adminSanitationRoute
+  '/services': typeof adminServicesRoute
+  '/taxpayers': typeof adminTaxpayersRoute
+  '/transport': typeof adminTransportRoute
+  '/dashboard': typeof dashboardDashboardRoute
+  '/portal': typeof dashboardPortalRoute
+  '/about': typeof publicAboutRoute
+  '/contact': typeof publicContactRoute
+  '/register': typeof publicRegisterRoute
+  '/': typeof publicIndexRoute
+  '/markets/collect': typeof adminMarketsCollectRoute
+  '/markets/register': typeof adminMarketsRegisterRoute
+  '/markets/traders': typeof adminMarketsTradersRoute
+  '/auth/login': typeof authAuthLoginRoute
+  '/auth/signup': typeof authAuthSignupRoute
+  '/properties/register': typeof publicPropertiesRegisterRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
+  '/properties/': typeof publicPropertiesIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/businesses': typeof BusinessesRoute
-  '/bylaws': typeof BylawsRoute
-  '/command-center': typeof CommandCenterRoute
-  '/compliance': typeof ComplianceRoute
-  '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
-  '/executive': typeof ExecutiveRoute
-  '/gis': typeof GisRoute
-  '/intelligence': typeof IntelligenceRoute
-  '/markets': typeof MarketsRouteWithChildren
-  '/notices': typeof NoticesRoute
-  '/notifications': typeof NotificationsRoute
-  '/payments': typeof PaymentsRoute
-  '/portal': typeof PortalRoute
-  '/register': typeof RegisterRoute
-  '/reports': typeof ReportsRoute
-  '/revenue-center': typeof RevenueCenterRoute
-  '/sanitation': typeof SanitationRoute
-  '/services': typeof ServicesRoute
-  '/taxpayers': typeof TaxpayersRoute
-  '/transport': typeof TransportRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
-  '/markets/collect': typeof MarketsCollectRoute
-  '/markets/register': typeof MarketsRegisterRoute
-  '/markets/traders': typeof MarketsTradersRoute
-  '/properties/register': typeof PropertiesRegisterRoute
-  '/properties': typeof PropertiesIndexRoute
+  '/businesses': typeof adminBusinessesRoute
+  '/bylaws': typeof adminBylawsRoute
+  '/command-center': typeof adminCommandCenterRoute
+  '/compliance': typeof adminComplianceRoute
+  '/executive': typeof adminExecutiveRoute
+  '/gis': typeof adminGisRoute
+  '/intelligence': typeof adminIntelligenceRoute
+  '/markets': typeof adminMarketsRouteWithChildren
+  '/notices': typeof adminNoticesRoute
+  '/notifications': typeof adminNotificationsRoute
+  '/payments': typeof adminPaymentsRoute
+  '/reports': typeof adminReportsRoute
+  '/revenue-center': typeof adminRevenueCenterRoute
+  '/sanitation': typeof adminSanitationRoute
+  '/services': typeof adminServicesRoute
+  '/taxpayers': typeof adminTaxpayersRoute
+  '/transport': typeof adminTransportRoute
+  '/dashboard': typeof dashboardDashboardRoute
+  '/portal': typeof dashboardPortalRoute
+  '/about': typeof publicAboutRoute
+  '/contact': typeof publicContactRoute
+  '/register': typeof publicRegisterRoute
+  '/': typeof publicIndexRoute
+  '/markets/collect': typeof adminMarketsCollectRoute
+  '/markets/register': typeof adminMarketsRegisterRoute
+  '/markets/traders': typeof adminMarketsTradersRoute
+  '/auth/login': typeof authAuthLoginRoute
+  '/auth/signup': typeof authAuthSignupRoute
+  '/properties/register': typeof publicPropertiesRegisterRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
+  '/properties': typeof publicPropertiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/businesses': typeof BusinessesRoute
-  '/bylaws': typeof BylawsRoute
-  '/command-center': typeof CommandCenterRoute
-  '/compliance': typeof ComplianceRoute
-  '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
-  '/executive': typeof ExecutiveRoute
-  '/gis': typeof GisRoute
-  '/intelligence': typeof IntelligenceRoute
-  '/markets': typeof MarketsRouteWithChildren
-  '/notices': typeof NoticesRoute
-  '/notifications': typeof NotificationsRoute
-  '/payments': typeof PaymentsRoute
-  '/portal': typeof PortalRoute
-  '/register': typeof RegisterRoute
-  '/reports': typeof ReportsRoute
-  '/revenue-center': typeof RevenueCenterRoute
-  '/sanitation': typeof SanitationRoute
-  '/services': typeof ServicesRoute
-  '/taxpayers': typeof TaxpayersRoute
-  '/transport': typeof TransportRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
-  '/markets/collect': typeof MarketsCollectRoute
-  '/markets/register': typeof MarketsRegisterRoute
-  '/markets/traders': typeof MarketsTradersRoute
-  '/properties/register': typeof PropertiesRegisterRoute
-  '/properties/': typeof PropertiesIndexRoute
+  '/(admin)/businesses': typeof adminBusinessesRoute
+  '/(admin)/bylaws': typeof adminBylawsRoute
+  '/(admin)/command-center': typeof adminCommandCenterRoute
+  '/(admin)/compliance': typeof adminComplianceRoute
+  '/(admin)/executive': typeof adminExecutiveRoute
+  '/(admin)/gis': typeof adminGisRoute
+  '/(admin)/intelligence': typeof adminIntelligenceRoute
+  '/(admin)/markets': typeof adminMarketsRouteWithChildren
+  '/(admin)/notices': typeof adminNoticesRoute
+  '/(admin)/notifications': typeof adminNotificationsRoute
+  '/(admin)/payments': typeof adminPaymentsRoute
+  '/(admin)/reports': typeof adminReportsRoute
+  '/(admin)/revenue-center': typeof adminRevenueCenterRoute
+  '/(admin)/sanitation': typeof adminSanitationRoute
+  '/(admin)/services': typeof adminServicesRoute
+  '/(admin)/taxpayers': typeof adminTaxpayersRoute
+  '/(admin)/transport': typeof adminTransportRoute
+  '/(dashboard)/dashboard': typeof dashboardDashboardRoute
+  '/(dashboard)/portal': typeof dashboardPortalRoute
+  '/(public)/about': typeof publicAboutRoute
+  '/(public)/contact': typeof publicContactRoute
+  '/(public)/register': typeof publicRegisterRoute
+  '/(public)/': typeof publicIndexRoute
+  '/(admin)/markets/collect': typeof adminMarketsCollectRoute
+  '/(admin)/markets/register': typeof adminMarketsRegisterRoute
+  '/(admin)/markets/traders': typeof adminMarketsTradersRoute
+  '/(auth)/auth/login': typeof authAuthLoginRoute
+  '/(auth)/auth/signup': typeof authAuthSignupRoute
+  '/(public)/properties/register': typeof publicPropertiesRegisterRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
+  '/(public)/properties/': typeof publicPropertiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/about'
     | '/businesses'
     | '/bylaws'
     | '/command-center'
     | '/compliance'
-    | '/contact'
-    | '/dashboard'
     | '/executive'
     | '/gis'
     | '/intelligence'
@@ -315,32 +312,32 @@ export interface FileRouteTypes {
     | '/notices'
     | '/notifications'
     | '/payments'
-    | '/portal'
-    | '/register'
     | '/reports'
     | '/revenue-center'
     | '/sanitation'
     | '/services'
     | '/taxpayers'
     | '/transport'
-    | '/auth/login'
-    | '/auth/signup'
+    | '/dashboard'
+    | '/portal'
+    | '/about'
+    | '/contact'
+    | '/register'
+    | '/'
     | '/markets/collect'
     | '/markets/register'
     | '/markets/traders'
+    | '/auth/login'
+    | '/auth/signup'
     | '/properties/register'
-    | '/properties/'
     | '/api/public/seed-demo'
+    | '/properties/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/about'
     | '/businesses'
     | '/bylaws'
     | '/command-center'
     | '/compliance'
-    | '/contact'
-    | '/dashboard'
     | '/executive'
     | '/gis'
     | '/intelligence'
@@ -348,298 +345,260 @@ export interface FileRouteTypes {
     | '/notices'
     | '/notifications'
     | '/payments'
-    | '/portal'
-    | '/register'
     | '/reports'
     | '/revenue-center'
     | '/sanitation'
     | '/services'
     | '/taxpayers'
     | '/transport'
-    | '/auth/login'
-    | '/auth/signup'
+    | '/dashboard'
+    | '/portal'
+    | '/about'
+    | '/contact'
+    | '/register'
+    | '/'
     | '/markets/collect'
     | '/markets/register'
     | '/markets/traders'
+    | '/auth/login'
+    | '/auth/signup'
     | '/properties/register'
-    | '/properties'
     | '/api/public/seed-demo'
+    | '/properties'
   id:
     | '__root__'
-    | '/'
-    | '/about'
-    | '/businesses'
-    | '/bylaws'
-    | '/command-center'
-    | '/compliance'
-    | '/contact'
-    | '/dashboard'
-    | '/executive'
-    | '/gis'
-    | '/intelligence'
-    | '/markets'
-    | '/notices'
-    | '/notifications'
-    | '/payments'
-    | '/portal'
-    | '/register'
-    | '/reports'
-    | '/revenue-center'
-    | '/sanitation'
-    | '/services'
-    | '/taxpayers'
-    | '/transport'
-    | '/auth/login'
-    | '/auth/signup'
-    | '/markets/collect'
-    | '/markets/register'
-    | '/markets/traders'
-    | '/properties/register'
-    | '/properties/'
+    | '/(admin)/businesses'
+    | '/(admin)/bylaws'
+    | '/(admin)/command-center'
+    | '/(admin)/compliance'
+    | '/(admin)/executive'
+    | '/(admin)/gis'
+    | '/(admin)/intelligence'
+    | '/(admin)/markets'
+    | '/(admin)/notices'
+    | '/(admin)/notifications'
+    | '/(admin)/payments'
+    | '/(admin)/reports'
+    | '/(admin)/revenue-center'
+    | '/(admin)/sanitation'
+    | '/(admin)/services'
+    | '/(admin)/taxpayers'
+    | '/(admin)/transport'
+    | '/(dashboard)/dashboard'
+    | '/(dashboard)/portal'
+    | '/(public)/about'
+    | '/(public)/contact'
+    | '/(public)/register'
+    | '/(public)/'
+    | '/(admin)/markets/collect'
+    | '/(admin)/markets/register'
+    | '/(admin)/markets/traders'
+    | '/(auth)/auth/login'
+    | '/(auth)/auth/signup'
+    | '/(public)/properties/register'
     | '/api/public/seed-demo'
+    | '/(public)/properties/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  BusinessesRoute: typeof BusinessesRoute
-  BylawsRoute: typeof BylawsRoute
-  CommandCenterRoute: typeof CommandCenterRoute
-  ComplianceRoute: typeof ComplianceRoute
-  ContactRoute: typeof ContactRoute
-  DashboardRoute: typeof DashboardRoute
-  ExecutiveRoute: typeof ExecutiveRoute
-  GisRoute: typeof GisRoute
-  IntelligenceRoute: typeof IntelligenceRoute
-  MarketsRoute: typeof MarketsRouteWithChildren
-  NoticesRoute: typeof NoticesRoute
-  NotificationsRoute: typeof NotificationsRoute
-  PaymentsRoute: typeof PaymentsRoute
-  PortalRoute: typeof PortalRoute
-  RegisterRoute: typeof RegisterRoute
-  ReportsRoute: typeof ReportsRoute
-  RevenueCenterRoute: typeof RevenueCenterRoute
-  SanitationRoute: typeof SanitationRoute
-  ServicesRoute: typeof ServicesRoute
-  TaxpayersRoute: typeof TaxpayersRoute
-  TransportRoute: typeof TransportRoute
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthSignupRoute: typeof AuthSignupRoute
-  PropertiesRegisterRoute: typeof PropertiesRegisterRoute
-  PropertiesIndexRoute: typeof PropertiesIndexRoute
+  adminBusinessesRoute: typeof adminBusinessesRoute
+  adminBylawsRoute: typeof adminBylawsRoute
+  adminCommandCenterRoute: typeof adminCommandCenterRoute
+  adminComplianceRoute: typeof adminComplianceRoute
+  adminExecutiveRoute: typeof adminExecutiveRoute
+  adminGisRoute: typeof adminGisRoute
+  adminIntelligenceRoute: typeof adminIntelligenceRoute
+  adminMarketsRoute: typeof adminMarketsRouteWithChildren
+  adminNoticesRoute: typeof adminNoticesRoute
+  adminNotificationsRoute: typeof adminNotificationsRoute
+  adminPaymentsRoute: typeof adminPaymentsRoute
+  adminReportsRoute: typeof adminReportsRoute
+  adminRevenueCenterRoute: typeof adminRevenueCenterRoute
+  adminSanitationRoute: typeof adminSanitationRoute
+  adminServicesRoute: typeof adminServicesRoute
+  adminTaxpayersRoute: typeof adminTaxpayersRoute
+  adminTransportRoute: typeof adminTransportRoute
+  dashboardDashboardRoute: typeof dashboardDashboardRoute
+  dashboardPortalRoute: typeof dashboardPortalRoute
+  publicAboutRoute: typeof publicAboutRoute
+  publicContactRoute: typeof publicContactRoute
+  publicRegisterRoute: typeof publicRegisterRoute
+  publicIndexRoute: typeof publicIndexRoute
+  authAuthLoginRoute: typeof authAuthLoginRoute
+  authAuthSignupRoute: typeof authAuthSignupRoute
+  publicPropertiesRegisterRoute: typeof publicPropertiesRegisterRoute
   ApiPublicSeedDemoRoute: typeof ApiPublicSeedDemoRoute
+  publicPropertiesIndexRoute: typeof publicPropertiesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/transport': {
-      id: '/transport'
-      path: '/transport'
-      fullPath: '/transport'
-      preLoaderRoute: typeof TransportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/taxpayers': {
-      id: '/taxpayers'
-      path: '/taxpayers'
-      fullPath: '/taxpayers'
-      preLoaderRoute: typeof TaxpayersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services': {
-      id: '/services'
-      path: '/services'
-      fullPath: '/services'
-      preLoaderRoute: typeof ServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sanitation': {
-      id: '/sanitation'
-      path: '/sanitation'
-      fullPath: '/sanitation'
-      preLoaderRoute: typeof SanitationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/revenue-center': {
-      id: '/revenue-center'
-      path: '/revenue-center'
-      fullPath: '/revenue-center'
-      preLoaderRoute: typeof RevenueCenterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/portal': {
-      id: '/portal'
-      path: '/portal'
-      fullPath: '/portal'
-      preLoaderRoute: typeof PortalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/payments': {
-      id: '/payments'
-      path: '/payments'
-      fullPath: '/payments'
-      preLoaderRoute: typeof PaymentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notifications': {
-      id: '/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof NotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notices': {
-      id: '/notices'
-      path: '/notices'
-      fullPath: '/notices'
-      preLoaderRoute: typeof NoticesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/markets': {
-      id: '/markets'
-      path: '/markets'
-      fullPath: '/markets'
-      preLoaderRoute: typeof MarketsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/intelligence': {
-      id: '/intelligence'
-      path: '/intelligence'
-      fullPath: '/intelligence'
-      preLoaderRoute: typeof IntelligenceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gis': {
-      id: '/gis'
-      path: '/gis'
-      fullPath: '/gis'
-      preLoaderRoute: typeof GisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/executive': {
-      id: '/executive'
-      path: '/executive'
-      fullPath: '/executive'
-      preLoaderRoute: typeof ExecutiveRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/compliance': {
-      id: '/compliance'
-      path: '/compliance'
-      fullPath: '/compliance'
-      preLoaderRoute: typeof ComplianceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/command-center': {
-      id: '/command-center'
-      path: '/command-center'
-      fullPath: '/command-center'
-      preLoaderRoute: typeof CommandCenterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bylaws': {
-      id: '/bylaws'
-      path: '/bylaws'
-      fullPath: '/bylaws'
-      preLoaderRoute: typeof BylawsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/businesses': {
-      id: '/businesses'
-      path: '/businesses'
-      fullPath: '/businesses'
-      preLoaderRoute: typeof BusinessesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/(public)/': {
+      id: '/(public)/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof publicIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/properties/': {
-      id: '/properties/'
+    '/(public)/register': {
+      id: '/(public)/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof publicRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/contact': {
+      id: '/(public)/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof publicContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/about': {
+      id: '/(public)/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof publicAboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(dashboard)/portal': {
+      id: '/(dashboard)/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof dashboardPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(dashboard)/dashboard': {
+      id: '/(dashboard)/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof dashboardDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/transport': {
+      id: '/(admin)/transport'
+      path: '/transport'
+      fullPath: '/transport'
+      preLoaderRoute: typeof adminTransportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/taxpayers': {
+      id: '/(admin)/taxpayers'
+      path: '/taxpayers'
+      fullPath: '/taxpayers'
+      preLoaderRoute: typeof adminTaxpayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/services': {
+      id: '/(admin)/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof adminServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/sanitation': {
+      id: '/(admin)/sanitation'
+      path: '/sanitation'
+      fullPath: '/sanitation'
+      preLoaderRoute: typeof adminSanitationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/revenue-center': {
+      id: '/(admin)/revenue-center'
+      path: '/revenue-center'
+      fullPath: '/revenue-center'
+      preLoaderRoute: typeof adminRevenueCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/reports': {
+      id: '/(admin)/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof adminReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/payments': {
+      id: '/(admin)/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof adminPaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/notifications': {
+      id: '/(admin)/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof adminNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/notices': {
+      id: '/(admin)/notices'
+      path: '/notices'
+      fullPath: '/notices'
+      preLoaderRoute: typeof adminNoticesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/markets': {
+      id: '/(admin)/markets'
+      path: '/markets'
+      fullPath: '/markets'
+      preLoaderRoute: typeof adminMarketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/intelligence': {
+      id: '/(admin)/intelligence'
+      path: '/intelligence'
+      fullPath: '/intelligence'
+      preLoaderRoute: typeof adminIntelligenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/gis': {
+      id: '/(admin)/gis'
+      path: '/gis'
+      fullPath: '/gis'
+      preLoaderRoute: typeof adminGisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/executive': {
+      id: '/(admin)/executive'
+      path: '/executive'
+      fullPath: '/executive'
+      preLoaderRoute: typeof adminExecutiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/compliance': {
+      id: '/(admin)/compliance'
+      path: '/compliance'
+      fullPath: '/compliance'
+      preLoaderRoute: typeof adminComplianceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/command-center': {
+      id: '/(admin)/command-center'
+      path: '/command-center'
+      fullPath: '/command-center'
+      preLoaderRoute: typeof adminCommandCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/bylaws': {
+      id: '/(admin)/bylaws'
+      path: '/bylaws'
+      fullPath: '/bylaws'
+      preLoaderRoute: typeof adminBylawsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/businesses': {
+      id: '/(admin)/businesses'
+      path: '/businesses'
+      fullPath: '/businesses'
+      preLoaderRoute: typeof adminBusinessesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/properties/': {
+      id: '/(public)/properties/'
       path: '/properties'
       fullPath: '/properties/'
-      preLoaderRoute: typeof PropertiesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/properties/register': {
-      id: '/properties/register'
-      path: '/properties/register'
-      fullPath: '/properties/register'
-      preLoaderRoute: typeof PropertiesRegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/markets/traders': {
-      id: '/markets/traders'
-      path: '/traders'
-      fullPath: '/markets/traders'
-      preLoaderRoute: typeof MarketsTradersRouteImport
-      parentRoute: typeof MarketsRoute
-    }
-    '/markets/register': {
-      id: '/markets/register'
-      path: '/register'
-      fullPath: '/markets/register'
-      preLoaderRoute: typeof MarketsRegisterRouteImport
-      parentRoute: typeof MarketsRoute
-    }
-    '/markets/collect': {
-      id: '/markets/collect'
-      path: '/collect'
-      fullPath: '/markets/collect'
-      preLoaderRoute: typeof MarketsCollectRouteImport
-      parentRoute: typeof MarketsRoute
-    }
-    '/auth/signup': {
-      id: '/auth/signup'
-      path: '/auth/signup'
-      fullPath: '/auth/signup'
-      preLoaderRoute: typeof AuthSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
+      preLoaderRoute: typeof publicPropertiesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/seed-demo': {
@@ -649,64 +608,106 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSeedDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(public)/properties/register': {
+      id: '/(public)/properties/register'
+      path: '/properties/register'
+      fullPath: '/properties/register'
+      preLoaderRoute: typeof publicPropertiesRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/auth/signup': {
+      id: '/(auth)/auth/signup'
+      path: '/auth/signup'
+      fullPath: '/auth/signup'
+      preLoaderRoute: typeof authAuthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/auth/login': {
+      id: '/(auth)/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof authAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/markets/traders': {
+      id: '/(admin)/markets/traders'
+      path: '/traders'
+      fullPath: '/markets/traders'
+      preLoaderRoute: typeof adminMarketsTradersRouteImport
+      parentRoute: typeof adminMarketsRoute
+    }
+    '/(admin)/markets/register': {
+      id: '/(admin)/markets/register'
+      path: '/register'
+      fullPath: '/markets/register'
+      preLoaderRoute: typeof adminMarketsRegisterRouteImport
+      parentRoute: typeof adminMarketsRoute
+    }
+    '/(admin)/markets/collect': {
+      id: '/(admin)/markets/collect'
+      path: '/collect'
+      fullPath: '/markets/collect'
+      preLoaderRoute: typeof adminMarketsCollectRouteImport
+      parentRoute: typeof adminMarketsRoute
+    }
   }
 }
 
-interface MarketsRouteChildren {
-  MarketsCollectRoute: typeof MarketsCollectRoute
-  MarketsRegisterRoute: typeof MarketsRegisterRoute
-  MarketsTradersRoute: typeof MarketsTradersRoute
+interface adminMarketsRouteChildren {
+  adminMarketsCollectRoute: typeof adminMarketsCollectRoute
+  adminMarketsRegisterRoute: typeof adminMarketsRegisterRoute
+  adminMarketsTradersRoute: typeof adminMarketsTradersRoute
 }
 
-const MarketsRouteChildren: MarketsRouteChildren = {
-  MarketsCollectRoute: MarketsCollectRoute,
-  MarketsRegisterRoute: MarketsRegisterRoute,
-  MarketsTradersRoute: MarketsTradersRoute,
+const adminMarketsRouteChildren: adminMarketsRouteChildren = {
+  adminMarketsCollectRoute: adminMarketsCollectRoute,
+  adminMarketsRegisterRoute: adminMarketsRegisterRoute,
+  adminMarketsTradersRoute: adminMarketsTradersRoute,
 }
 
-const MarketsRouteWithChildren =
-  MarketsRoute._addFileChildren(MarketsRouteChildren)
+const adminMarketsRouteWithChildren = adminMarketsRoute._addFileChildren(
+  adminMarketsRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  BusinessesRoute: BusinessesRoute,
-  BylawsRoute: BylawsRoute,
-  CommandCenterRoute: CommandCenterRoute,
-  ComplianceRoute: ComplianceRoute,
-  ContactRoute: ContactRoute,
-  DashboardRoute: DashboardRoute,
-  ExecutiveRoute: ExecutiveRoute,
-  GisRoute: GisRoute,
-  IntelligenceRoute: IntelligenceRoute,
-  MarketsRoute: MarketsRouteWithChildren,
-  NoticesRoute: NoticesRoute,
-  NotificationsRoute: NotificationsRoute,
-  PaymentsRoute: PaymentsRoute,
-  PortalRoute: PortalRoute,
-  RegisterRoute: RegisterRoute,
-  ReportsRoute: ReportsRoute,
-  RevenueCenterRoute: RevenueCenterRoute,
-  SanitationRoute: SanitationRoute,
-  ServicesRoute: ServicesRoute,
-  TaxpayersRoute: TaxpayersRoute,
-  TransportRoute: TransportRoute,
-  AuthLoginRoute: AuthLoginRoute,
-  AuthSignupRoute: AuthSignupRoute,
-  PropertiesRegisterRoute: PropertiesRegisterRoute,
-  PropertiesIndexRoute: PropertiesIndexRoute,
+  adminBusinessesRoute: adminBusinessesRoute,
+  adminBylawsRoute: adminBylawsRoute,
+  adminCommandCenterRoute: adminCommandCenterRoute,
+  adminComplianceRoute: adminComplianceRoute,
+  adminExecutiveRoute: adminExecutiveRoute,
+  adminGisRoute: adminGisRoute,
+  adminIntelligenceRoute: adminIntelligenceRoute,
+  adminMarketsRoute: adminMarketsRouteWithChildren,
+  adminNoticesRoute: adminNoticesRoute,
+  adminNotificationsRoute: adminNotificationsRoute,
+  adminPaymentsRoute: adminPaymentsRoute,
+  adminReportsRoute: adminReportsRoute,
+  adminRevenueCenterRoute: adminRevenueCenterRoute,
+  adminSanitationRoute: adminSanitationRoute,
+  adminServicesRoute: adminServicesRoute,
+  adminTaxpayersRoute: adminTaxpayersRoute,
+  adminTransportRoute: adminTransportRoute,
+  dashboardDashboardRoute: dashboardDashboardRoute,
+  dashboardPortalRoute: dashboardPortalRoute,
+  publicAboutRoute: publicAboutRoute,
+  publicContactRoute: publicContactRoute,
+  publicRegisterRoute: publicRegisterRoute,
+  publicIndexRoute: publicIndexRoute,
+  authAuthLoginRoute: authAuthLoginRoute,
+  authAuthSignupRoute: authAuthSignupRoute,
+  publicPropertiesRegisterRoute: publicPropertiesRegisterRoute,
   ApiPublicSeedDemoRoute: ApiPublicSeedDemoRoute,
+  publicPropertiesIndexRoute: publicPropertiesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
+import type { getRouter } from './app/router/router.tsx'
+import type { createStart } from '@tanstack/react-start'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

@@ -8,9 +8,15 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
+    // Router configuration
+    router: {
+      entry: "app/router/router.tsx",
+      routesDirectory: "routes",
+      generatedRouteTree: "app/router/routeTree.gen.ts",
+    },
+    // Redirect TanStack Start's bundled server entry to src/app/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
-    server: { entry: "server" },
+    server: { entry: "app/server.ts" },
   },
   nitro: {
     // Use vercel preset when NITRO_PRESET=vercel (set in Vercel env vars),

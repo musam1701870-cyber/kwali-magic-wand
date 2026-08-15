@@ -9,10 +9,11 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AuthProvider } from "@/hooks/useAuth";
-import crest from "../assets/kwali-crest.png";
+import "@/app/styles/styles.css";
+import { reportLovableError } from "@/shared/lib/lovable-error-reporting";
+import { AuthProvider } from "@/shared/hooks/useAuth";
+import { Toaster } from "@/shared/components/ui/sonner";
+import crest from "@/shared/assets/kwali-crest.png";
 
 function NotFoundComponent() {
   return (
@@ -80,21 +81,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Kwali Area Council — Smart Revenue Platform" },
-      { name: "description", content: "KURCMS — Kwali Unified Revenue & Compliance Management System. Pay tenement rates, business permits and transport levies online." },
+      {
+        name: "description",
+        content:
+          "KURCMS — Kwali Unified Revenue & Compliance Management System. Pay tenement rates, business permits and transport levies online.",
+      },
       { name: "author", content: "Kwali Area Council" },
       { property: "og:title", content: "Kwali Area Council — Smart Revenue Platform" },
-      { property: "og:description", content: "Pay your Kwali council levies online — tenement, business, sanitation and transport, all in one portal." },
+      {
+        property: "og:description",
+        content:
+          "Pay your Kwali council levies online — tenement, business, sanitation and transport, all in one portal.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@KwaliCouncil" },
       { name: "twitter:title", content: "Kwali Area Council — Smart Revenue Platform" },
-      { name: "twitter:description", content: "Pay your Kwali council levies online — tenement, business, sanitation and transport." },
+      {
+        name: "twitter:description",
+        content:
+          "Pay your Kwali council levies online — tenement, business, sanitation and transport.",
+      },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
       {
         rel: "icon",
         type: "image/png",
@@ -133,6 +142,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Outlet />
+        <Toaster position="top-right" richColors closeButton />
       </AuthProvider>
     </QueryClientProvider>
   );

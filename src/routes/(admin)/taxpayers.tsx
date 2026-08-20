@@ -77,8 +77,8 @@ function TaxpayersPage() {
 
   return (
     <DashboardShell
-      title="Taxpayer Management"
-      subtitle="Individuals, corporates, businesses, property owners, transport operators and market traders"
+      title="Taxpayer Registry"
+      subtitle="Everyone who pays levies — individuals, corporates, property owners, businesses, transport operators and market traders"
       actions={
         <div className="flex gap-2">
           <button

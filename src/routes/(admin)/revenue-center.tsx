@@ -260,7 +260,7 @@ function RevenueCenter() {
   return (
     <DashboardShell
       title="Revenue Center"
-      subtitle="Unified registry, filters and exports across every revenue stream"
+      subtitle="Every naira collected and outstanding — filter across businesses, properties, transport, markets, taxpayers and payments"
       actions={
         <div className="flex gap-2">
           <Button

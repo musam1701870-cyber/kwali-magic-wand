@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
+import { Banknote } from "lucide-react";
 import crest from "@/shared/assets/kwali-crest.png";
 import { useAuth } from "@/shared/hooks/useAuth";
 
@@ -39,18 +40,29 @@ export function SiteNav() {
               <Link
                 to={n.to as "/"}
                 activeOptions={n.exact ? { exact: true } : undefined}
-                className="relative inline-flex items-center rounded-md px-3 py-2 text-foreground/80 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 [&.active]:text-primary"
+                className="group relative inline-flex items-center rounded-md px-3 py-2 text-foreground/80 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 [&.active]:text-primary"
                 activeProps={{ className: "active text-primary" }}
               >
                 <span className="relative">
                   {n.label}
-                  <span className="absolute -bottom-1 left-0 h-0.5 w-0 rounded-full bg-gold transition-all duration-300 group-hover:w-full" />
+                  <span className="absolute -bottom-1 left-0 h-0.5 w-0 rounded-full bg-gold transition-all duration-300 group-hover:w-full [.active_&]:w-full" />
                 </span>
               </Link>
             </li>
           ))}
         </ul>
         <div className="flex items-center gap-2">
+          {/* Paying is the single most common reason anyone opens this site, so it
+              is a permanent, gold, always-visible action — not a menu item, and
+              not hidden behind sign-in. It works with no account. */}
+          <Link
+            to="/pay"
+            className="inline-flex items-center gap-1.5 rounded-md bg-gold px-3 py-2 text-sm font-bold text-gold-foreground shadow-sm transition hover:-translate-y-0.5 hover:opacity-95 sm:px-4"
+          >
+            <Banknote className="h-4 w-4" />
+            <span className="hidden sm:inline">Make payment</span>
+            <span className="sm:hidden">Pay</span>
+          </Link>
           {loading ? null : user ? (
             <>
               <Link
@@ -135,6 +147,15 @@ export function SiteNav() {
                 </Link>
               </li>
             )}
+            <li>
+              <Link
+                to="/verify"
+                onClick={() => setOpen(false)}
+                className="block rounded-md px-3 py-3 text-foreground transition hover:bg-secondary hover:text-primary"
+              >
+                Verify a receipt
+              </Link>
+            </li>
           </ul>
         </div>
       )}
@@ -173,6 +194,16 @@ export function SiteFooter() {
         <div>
           <div className="text-sm font-semibold text-ink">Quick links</div>
           <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+            <li>
+              <Link to="/pay" className="font-semibold text-primary transition hover:underline">
+                Make a payment
+              </Link>
+            </li>
+            <li>
+              <Link to="/verify" className="transition hover:text-primary">
+                Verify a receipt
+              </Link>
+            </li>
             <li>
               <Link to="/dashboard" className="transition hover:text-primary">
                 My Dashboard

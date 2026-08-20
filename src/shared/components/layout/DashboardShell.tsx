@@ -35,10 +35,12 @@ import {
 
 const navGroups: {
   label: string;
-  items: { to: string; label: string; icon: ReactNode; sub?: boolean }[];
+  description?: string;
+  items: { to: string; label: string; icon: ReactNode; sub?: boolean; hash?: string }[];
 }[] = [
   {
     label: "Overview",
+    description: "Council revenue health at a glance",
     items: [
       {
         to: "/executive",
@@ -46,15 +48,30 @@ const navGroups: {
         icon: <LayoutDashboard className="h-4 w-4" />,
       },
       { to: "/revenue-center", label: "Revenue Center", icon: <Banknote className="h-4 w-4" /> },
-      { to: "/intelligence", label: "Intelligence", icon: <TrendingUp className="h-4 w-4" /> },
+      {
+        to: "/intelligence",
+        label: "Revenue Intelligence",
+        icon: <TrendingUp className="h-4 w-4" />,
+      },
     ],
   },
   {
-    label: "Registry",
+    label: "Business & Property",
+    description: "Registered businesses and rated properties",
     items: [
-      { to: "/taxpayers", label: "Taxpayers", icon: <Users className="h-4 w-4" /> },
       { to: "/businesses", label: "Businesses", icon: <Building2 className="h-4 w-4" /> },
       { to: "/properties", label: "Properties", icon: <Home className="h-4 w-4" /> },
+    ],
+  },
+  {
+    label: "Taxpayers",
+    description: "Individuals and organisations that pay levies",
+    items: [{ to: "/taxpayers", label: "Taxpayer Registry", icon: <Users className="h-4 w-4" /> }],
+  },
+  {
+    label: "Transport & Markets",
+    description: "Vehicles, market stalls and trader identity",
+    items: [
       { to: "/transport", label: "Transport", icon: <Bike className="h-4 w-4" /> },
       { to: "/markets", label: "Markets", icon: <ShoppingCart className="h-4 w-4" /> },
       {
@@ -79,13 +96,21 @@ const navGroups: {
   },
   {
     label: "Operations",
+    description: "Payments, compliance and demand notices",
     items: [
       { to: "/payments", label: "Payments", icon: <CreditCard className="h-4 w-4" /> },
       { to: "/compliance", label: "Compliance", icon: <ShieldCheck className="h-4 w-4" /> },
       { to: "/notices", label: "Demand Notices", icon: <FileText className="h-4 w-4" /> },
+    ],
+  },
+  {
+    label: "Reports & Tools",
+    description: "Ward map, reports and alerts",
+    items: [
       { to: "/gis", label: "Ward Map", icon: <Map className="h-4 w-4" /> },
       { to: "/reports", label: "Reports", icon: <BarChart3 className="h-4 w-4" /> },
       { to: "/notifications", label: "Notifications", icon: <Bell className="h-4 w-4" /> },
+      { to: "/staff", label: "Staff Accounts", icon: <UserPlus className="h-4 w-4" /> },
     ],
   },
 ];
@@ -102,6 +127,8 @@ const taxpayerGroups: typeof navGroups = [
   {
     label: "Services",
     items: [
+      { to: "/pay", label: "Make a Payment", icon: <Banknote className="h-4 w-4" /> },
+      { to: "/verify", label: "Verify a Receipt", icon: <ShieldCheck className="h-4 w-4" /> },
       { to: "/transport", label: "Transport Tickets", icon: <Bike className="h-4 w-4" /> },
       { to: "/register", label: "Register", icon: <UserPlus className="h-4 w-4" /> },
       { to: "/contact", label: "Help & Support", icon: <HelpCircle className="h-4 w-4" /> },
@@ -109,42 +136,127 @@ const taxpayerGroups: typeof navGroups = [
   },
 ];
 
-// Marshal navigation
+// Marshal navigation — tabs deep-link into the marshal dashboard via the URL hash.
 const marshalGroups: typeof navGroups = [
   {
     label: "Field Operations",
+    description: "Verify tickets and record incidents on the road",
     items: [
       { to: "/marshal", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
-      { to: "/marshal", label: "Transport Verification", icon: <Bike className="h-4 w-4" />, state: { tab: "transport" } },
-      { to: "/marshal", label: "Market Verification", icon: <ShoppingCart className="h-4 w-4" />, state: { tab: "market" } },
-      { to: "/marshal", label: "Enforcement Incidents", icon: <AlertTriangle className="h-4 w-4" />, state: { tab: "incidents" } },
+      {
+        to: "/marshal",
+        label: "Onboard Trader",
+        icon: <UserPlus className="h-4 w-4" />,
+        hash: "onboard",
+      },
+      {
+        to: "/marshal",
+        label: "Collections",
+        icon: <CreditCard className="h-4 w-4" />,
+        hash: "collections",
+      },
+      {
+        to: "/marshal",
+        label: "Verifications",
+        icon: <ClipboardList className="h-4 w-4" />,
+        hash: "verifications",
+      },
+      {
+        to: "/marshal",
+        label: "Enforcement",
+        icon: <AlertTriangle className="h-4 w-4" />,
+        hash: "incidents",
+      },
     ],
   },
   {
-    label: "Tools",
+    label: "Support",
+    items: [{ to: "/contact", label: "Help & Support", icon: <HelpCircle className="h-4 w-4" /> }],
+  },
+];
+
+// Chairman / Executive navigation
+const chairmanGroups: typeof navGroups = [
+  {
+    label: "Executive",
+    description: "Chairman command center for Kwali Area Council",
     items: [
-      { to: "/marshal", label: "QR Scanner", icon: <Scan className="h-4 w-4" /> },
-      { to: "/contact", label: "Help & Support", icon: <HelpCircle className="h-4 w-4" /> },
+      {
+        to: "/executive",
+        label: "Executive Overview",
+        icon: <LayoutDashboard className="h-4 w-4" />,
+      },
+      {
+        to: "/executive/revenue",
+        label: "Revenue Performance",
+        icon: <Banknote className="h-4 w-4" />,
+      },
+      {
+        to: "/executive/intelligence",
+        label: "Revenue Intelligence",
+        icon: <TrendingUp className="h-4 w-4" />,
+      },
+      { to: "/executive/wards", label: "Ward Performance", icon: <Map className="h-4 w-4" /> },
+      {
+        to: "/executive/compliance",
+        label: "Taxpayer & Compliance",
+        icon: <ShieldCheck className="h-4 w-4" />,
+      },
+      {
+        to: "/executive/payments",
+        label: "Payments & Settlement",
+        icon: <CreditCard className="h-4 w-4" />,
+      },
+      { to: "/executive/markets", label: "Markets", icon: <ShoppingCart className="h-4 w-4" /> },
+      { to: "/executive/transport", label: "Transport", icon: <Bike className="h-4 w-4" /> },
+      {
+        to: "/executive/enforcement",
+        label: "Enforcement",
+        icon: <AlertTriangle className="h-4 w-4" />,
+      },
+      { to: "/executive/gis", label: "Council GIS", icon: <Map className="h-4 w-4" /> },
+      {
+        to: "/executive/reports",
+        label: "Executive Reports",
+        icon: <FileText className="h-4 w-4" />,
+      },
+      { to: "/executive/notices", label: "Notices", icon: <ClipboardList className="h-4 w-4" /> },
     ],
   },
 ];
 
-// Officer navigation
+// Officer navigation — tabs deep-link into the officer dashboard via the URL hash.
 const officerGroups: typeof navGroups = [
   {
     label: "Revenue Operations",
     items: [
       { to: "/officer", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
-      { to: "/officer", label: "Collections", icon: <ShieldCheck className="h-4 w-4" />, state: { tab: "collections" } },
-      { to: "/officer", label: "Demand Notices", icon: <FileText className="h-4 w-4" />, state: { tab: "demands" } },
-      { to: "/officer", label: "Compliance", icon: <CheckCircle className="h-4 w-4" />, state: { tab: "compliance" } },
+      {
+        to: "/officer",
+        label: "Approvals",
+        icon: <CheckCircle className="h-4 w-4" />,
+        hash: "approvals",
+      },
+      {
+        to: "/officer",
+        label: "Collections",
+        icon: <CreditCard className="h-4 w-4" />,
+        hash: "collections",
+      },
     ],
   },
   {
-    label: "Registry",
+    label: "Business & Property",
+    description: "Registered businesses and rated properties",
     items: [
       { to: "/businesses", label: "Businesses", icon: <Building2 className="h-4 w-4" /> },
       { to: "/properties", label: "Properties", icon: <Home className="h-4 w-4" /> },
+    ],
+  },
+  {
+    label: "Transport & Markets",
+    description: "Vehicles, market stalls and trader identity",
+    items: [
       { to: "/transport", label: "Transport", icon: <Bike className="h-4 w-4" /> },
       { to: "/markets", label: "Markets", icon: <ShoppingCart className="h-4 w-4" /> },
     ],
@@ -181,20 +293,21 @@ function deriveIdentity(
   const initials = (
     parts.length >= 2 ? parts[0][0] + parts[1][0] : (parts[0]?.slice(0, 2) ?? "KA")
   ).toUpperCase();
-  
-  // Determine role from user_metadata or roles array
-  const userRole = meta.account_type || meta.role || roles[0];
+
+  // Derive display role from the actual roles array, NOT user_metadata.
   const role = isAdmin
     ? "Administrator"
-    : userRole === "marshal"
-      ? "Marshal"
-      : userRole === "officer"
-        ? "Revenue Officer"
-        : userRole === "taxpayer"
-          ? "Taxpayer"
-          : user
-            ? "Signed in"
-            : "Guest";
+    : roles.includes("chairman")
+      ? "Chairman"
+      : roles.includes("marshal")
+        ? "Marshal"
+        : roles.includes("officer")
+          ? "Revenue Officer"
+          : roles.includes("taxpayer")
+            ? "Taxpayer"
+            : user
+              ? "Signed in"
+              : "Guest";
   return { name, initials, role, email };
 }
 
@@ -212,6 +325,7 @@ export function DashboardShell({
   requireAdmin?: boolean;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const locHash = useRouterState({ select: (s) => s.location.hash });
   const { user, isAdmin, roles, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -223,24 +337,27 @@ export function DashboardShell({
 
   const identity = deriveIdentity(user, isAdmin, roles);
   const notifCount = notifications.length;
-  
-  // Select navigation groups based on role
-  const userRole = user?.user_metadata?.account_type || user?.user_metadata?.role || roles[0];
+
+  // Select navigation groups based on the actual roles array — never from user_metadata.
   const groups = isAdmin
     ? navGroups
-    : userRole === "marshal"
-      ? marshalGroups
-      : userRole === "officer"
-        ? officerGroups
-        : taxpayerGroups;
+    : roles.includes("chairman")
+      ? chairmanGroups
+      : roles.includes("marshal")
+        ? marshalGroups
+        : roles.includes("officer")
+          ? officerGroups
+          : taxpayerGroups;
 
   useEffect(() => {
     if (loading) return;
     if (requireAdmin) {
       if (!user) navigate({ to: "/auth/login" });
-      else if (!isAdmin) navigate({ to: "/portal" });
+      else if (!isAdmin && !roles.includes("chairman") && !roles.includes("officer")) {
+        navigate({ to: "/portal" });
+      }
     }
-  }, [loading, user, isAdmin, requireAdmin, navigate]);
+  }, [loading, user, isAdmin, requireAdmin, navigate, roles]);
 
   // Close overlays whenever the route changes.
   useEffect(() => {
@@ -272,8 +389,8 @@ export function DashboardShell({
 
   const searchTargets = useMemo(
     () => [
-      ...groups.flatMap((g) => g.items.map((i) => ({ to: i.to, label: i.label }))),
-      ...extraSearchTargets,
+      ...groups.flatMap((g) => g.items.map((i) => ({ to: i.to, label: i.label, hash: i.hash }))),
+      ...extraSearchTargets.map((t) => ({ ...t, hash: undefined as string | undefined })),
     ],
     [groups],
   );
@@ -288,7 +405,7 @@ export function DashboardShell({
     navigate({ to: "/" });
   }
 
-  if (requireAdmin && (loading || !user || !isAdmin)) {
+  if (requireAdmin && (loading || !user || (!isAdmin && !roles.includes("chairman") && !roles.includes("officer")))) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface">
         <div className="flex flex-col items-center gap-3">
@@ -303,28 +420,37 @@ export function DashboardShell({
     <>
       {groups.map((g) => (
         <div key={g.label} className="mb-5">
-          <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+          <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-widest text-sidebar-muted">
             {g.label}
           </p>
+          {g.description && (
+            <p className="mb-1 px-3 text-[11px] leading-snug text-sidebar-muted/80">
+              {g.description}
+            </p>
+          )}
           <div className="space-y-0.5">
             {g.items.map((n) => {
-              const active =
+              const pathMatch =
                 pathname === n.to ||
                 (n.to !== "/markets" && pathname.startsWith(n.to + "/")) ||
                 (n.to === "/markets" && pathname === "/markets");
+              // Items that deep-link to a tab (hash) are only active when the hash
+              // matches; the plain base item is active when there's no hash.
+              const active = pathMatch && (n.hash ?? "") === locHash;
               return (
                 <Link
-                  key={n.to}
+                  key={n.hash ? `${n.to}#${n.hash}` : n.to}
                   to={n.to}
+                  hash={n.hash}
                   onClick={onNavigate}
                   className={[
                     "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                     n.sub ? "ml-4 py-2" : "",
                     active
-                      ? "bg-primary text-primary-foreground shadow-sm"
+                      ? "bg-sidebar-accent text-sidebar-foreground shadow-[inset_2.5px_0_0_0_var(--color-gold)]"
                       : n.sub
-                        ? "text-foreground/60 hover:bg-secondary hover:text-foreground"
-                        : "text-foreground/70 hover:bg-secondary hover:text-foreground",
+                        ? "text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                   ].join(" ")}
                 >
                   <span className={active ? "opacity-100" : "opacity-60 group-hover:opacity-100"}>
@@ -344,22 +470,30 @@ export function DashboardShell({
   return (
     <div className="flex min-h-screen bg-surface">
       {/* Sidebar */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
+      <aside className="sidebar-panel hidden w-64 shrink-0 flex-col border-r border-sidebar-border md:flex">
         {/* Brand */}
         <Link
           to="/"
-          className="group flex items-center gap-3 border-b border-border px-5 py-4 transition hover:bg-secondary/50"
+          className="group flex items-center gap-3 border-b border-sidebar-border px-5 py-4 transition hover:bg-white/5"
         >
           <div className="relative">
             <img src={crest} alt="Kwali Crest" className="h-9 w-9 drop-shadow-sm" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-emerald-500" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white/25 bg-success" />
           </div>
           <div className="min-w-0 leading-tight">
-            <div className="truncate font-display text-sm font-bold text-primary">
+            <div className="truncate font-display text-sm font-bold text-sidebar-foreground">
               Kwali Area Council
             </div>
-            <div className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-              {isAdmin ? "KSRP Admin" : "Taxpayer Portal"}
+            <div className="text-[10px] font-medium uppercase tracking-widest text-sidebar-muted">
+              {isAdmin
+                ? "KSRP Admin"
+                : roles.includes("chairman")
+                  ? "Executive Dashboard"
+                  : roles.includes("marshal")
+                    ? "Marshal Portal"
+                    : roles.includes("officer")
+                      ? "Officer Portal"
+                      : "Taxpayer Portal"}
             </div>
           </div>
         </Link>
@@ -370,17 +504,17 @@ export function DashboardShell({
         </nav>
 
         {/* Sidebar footer */}
-        <div className="border-t border-border p-3 space-y-1">
+        <div className="border-t border-sidebar-border p-3 space-y-1">
           <Link
             to="/contact"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground/60 transition hover:bg-secondary hover:text-foreground"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 transition hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
           >
             <HelpCircle className="h-4 w-4" />
             Help & support
           </Link>
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground/60 transition hover:bg-red-50 hover:text-red-700"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 transition hover:bg-white/10 hover:text-red-300"
           >
             <LogOut className="h-4 w-4" />
             Sign out
@@ -395,20 +529,28 @@ export function DashboardShell({
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="relative flex h-full w-72 max-w-[85%] flex-col bg-card shadow-2xl">
-            <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+          <aside className="sidebar-panel relative flex h-full w-72 max-w-[85%] flex-col shadow-2xl">
+            <div className="flex items-center gap-3 border-b border-sidebar-border px-5 py-4">
               <img src={crest} alt="Kwali Crest" className="h-9 w-9" />
               <div className="min-w-0 flex-1 leading-tight">
-                <div className="truncate font-display text-sm font-bold text-primary">
+                <div className="truncate font-display text-sm font-bold text-sidebar-foreground">
                   Kwali Area Council
                 </div>
-                <div className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                  {isAdmin ? "KSRP Admin" : "Taxpayer Portal"}
+                <div className="text-[10px] font-medium uppercase tracking-widest text-sidebar-muted">
+                  {isAdmin
+                    ? "KSRP Admin"
+                    : roles.includes("chairman")
+                      ? "Executive Dashboard"
+                      : roles.includes("marshal")
+                        ? "Marshal Portal"
+                        : roles.includes("officer")
+                          ? "Officer Portal"
+                          : "Taxpayer Portal"}
                 </div>
               </div>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-secondary"
+                className="grid h-8 w-8 place-items-center rounded-lg border border-sidebar-border text-sidebar-foreground/70 hover:bg-sidebar-accent/60"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -416,10 +558,10 @@ export function DashboardShell({
             <nav className="flex-1 overflow-y-auto px-3 py-4">
               <NavList onNavigate={() => setMobileOpen(false)} />
             </nav>
-            <div className="border-t border-border p-3">
+            <div className="border-t border-sidebar-border p-3">
               <button
                 onClick={handleSignOut}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground/60 transition hover:bg-red-50 hover:text-red-700"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 transition hover:bg-white/10 hover:text-red-300"
               >
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -448,7 +590,8 @@ export function DashboardShell({
                 value={searchQ}
                 onChange={(e) => setSearchQ(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && searchResults[0]) navigate({ to: searchResults[0].to });
+                  if (e.key === "Enter" && searchResults[0])
+                    navigate({ to: searchResults[0].to, hash: searchResults[0].hash });
                 }}
                 placeholder="Jump to a page…"
                 className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -465,12 +608,14 @@ export function DashboardShell({
               ) : (
                 searchResults.map((r) => (
                   <button
-                    key={r.to}
-                    onClick={() => navigate({ to: r.to })}
+                    key={`${r.to}#${r.hash ?? ""}`}
+                    onClick={() => navigate({ to: r.to, hash: r.hash })}
                     className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm text-foreground transition hover:bg-secondary"
                   >
                     <span className="font-medium">{r.label}</span>
-                    <span className="font-mono text-[11px] text-muted-foreground">{r.to}</span>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      {r.hash ? `${r.to}#${r.hash}` : r.to}
+                    </span>
                   </button>
                 ))
               )}
@@ -509,6 +654,17 @@ export function DashboardShell({
 
           {/* Header actions */}
           <div className="flex shrink-0 items-center gap-2">
+            {/* Always reachable, in every role: staff assist walk-in payers, and a
+                taxpayer's most common task is paying. Works with no account. */}
+            <Link
+              to="/pay"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-2 text-sm font-bold text-gold-foreground shadow-sm transition hover:-translate-y-0.5 hover:opacity-95"
+            >
+              <Banknote className="h-4 w-4" />
+              <span className="hidden sm:inline">Make payment</span>
+              <span className="sm:hidden">Pay</span>
+            </Link>
+
             {actions}
 
             {/* Search */}
@@ -540,7 +696,7 @@ export function DashboardShell({
                 onClick={() => setUserMenuOpen((v) => !v)}
                 className="flex items-center gap-2.5 rounded-lg border border-border bg-background px-2.5 py-1.5 transition hover:bg-secondary"
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),oklch(0.32_0.1_160))] text-[11px] font-bold text-primary-foreground shadow-sm">
                   {identity.initials}
                 </div>
                 <div className="hidden text-left text-xs leading-tight sm:block">
@@ -579,7 +735,7 @@ export function DashboardShell({
                       </Link>
                       <button
                         onClick={handleSignOut}
-                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive transition hover:bg-destructive/10"
                       >
                         <LogOut className="h-4 w-4" /> Sign out
                       </button>

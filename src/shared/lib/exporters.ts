@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { qrDataUrl } from "@/shared/lib/qr";
 
 export type ExportRow = Record<string, string | number>;
 
@@ -82,12 +83,18 @@ export function exportPDF(opts: {
   doc.save(opts.filename.endsWith(".pdf") ? opts.filename : `${opts.filename}.pdf`);
 }
 
-export function exportIdCardPDF(opts: {
+export async function exportIdCardPDF(opts: {
   filename: string;
   idNo: string;
   name: string;
   lines: { label: string; value: string }[];
   footer?: string;
+  /**
+   * Verification URL to encode as a real, scannable QR code. Omit it and the
+   * card prints without a code — deliberately, because a decorative block that
+   * scans as nothing is worse than no code on an official identity document.
+   */
+  qrText?: string;
 }) {
   // Landscape ID-card canvas.
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: [340, 216] });
@@ -122,19 +129,11 @@ export function exportIdCardPDF(opts: {
     y += 16;
   });
 
-  // Deterministic QR-like block (right side)
-  const seed = opts.idNo.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const cell = 9;
-  const grid = 8;
-  const ox = w - 18 - grid * cell;
-  const oy = 72;
-  doc.setFillColor(15, 76, 58);
-  for (let r = 0; r < grid; r++) {
-    for (let c = 0; c < grid; c++) {
-      const on =
-        (r * 37 + c * 17 + seed) % 7 < 3 || r === 0 || c === 0 || r === grid - 1 || c === grid - 1;
-      if (on) doc.rect(ox + c * cell, oy + r * cell, cell - 1, cell - 1, "F");
-    }
+  // Scannable QR (right side). Encodes only an opaque verification URL.
+  if (opts.qrText) {
+    const side = 72;
+    const png = await qrDataUrl(opts.qrText, 512);
+    doc.addImage(png, "PNG", w - 18 - side, 66, side, side);
   }
 
   // Footer
@@ -143,18 +142,20 @@ export function exportIdCardPDF(opts: {
   doc.setTextColor(120, 120, 120);
   doc.setFontSize(7);
   doc.text(opts.footer ?? "KSRP · Kwali Smart Revenue Platform", 18, h - 14);
-  doc.text("Verify at kwali.gov.ng/verify", w - 18, h - 14, { align: "right" });
+  doc.text("Scan to verify", w - 18, h - 14, { align: "right" });
 
   doc.save(opts.filename.endsWith(".pdf") ? opts.filename : `${opts.filename}.pdf`);
 }
 
-export function exportReceiptPDF(opts: {
+export async function exportReceiptPDF(opts: {
   filename: string;
   receiptNo: string;
   payerName: string;
   lines: { label: string; value: string }[];
   amount: string;
   note?: string;
+  /** Verification URL to encode as a real QR. Omitted → no code is drawn. */
+  qrText?: string;
 }) {
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a5" });
   const pageW = doc.internal.pageSize.getWidth();
@@ -201,10 +202,21 @@ export function exportReceiptPDF(opts: {
 
   // Footer
   const bottom = doc.internal.pageSize.getHeight();
+
+  // Scannable verification QR, bottom-right above the footer text.
+  if (opts.qrText) {
+    const side = 82;
+    const png = await qrDataUrl(opts.qrText, 512);
+    doc.addImage(png, "PNG", pageW - 32 - side, bottom - 68 - side, side, side);
+    doc.setTextColor(120, 120, 120);
+    doc.setFontSize(7);
+    doc.text("Scan to verify", pageW - 32 - side / 2, bottom - 58, { align: "center" });
+  }
+
   doc.setTextColor(120, 120, 120);
   doc.setFontSize(8);
   if (opts.note) doc.text(opts.note, 32, bottom - 54);
-  doc.text("This is a computer-generated receipt. Verify at kwali.gov.ng/verify", 32, bottom - 38);
+  doc.text("This is a computer-generated receipt.", 32, bottom - 38);
   doc.text(`Issued ${new Date().toLocaleString()}`, 32, bottom - 24);
 
   doc.save(opts.filename.endsWith(".pdf") ? opts.filename : `${opts.filename}.pdf`);

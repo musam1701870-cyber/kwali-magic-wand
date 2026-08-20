@@ -1,20 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { DashboardShell } from "@/shared/components/layout/DashboardShell";
-import { traders, markets, marketOfficers, type Trader } from "@/shared/lib/kwali-mock";
+import { StatusBadge } from "@/shared/components/ui/status-badge";
+import { TaxpayerIdCard } from "@/shared/components/ui/TaxpayerIdCard";
+import { useAuth } from "@/shared/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { recordPayment } from "@/shared/lib/revenue";
+import { fmtNaira } from "@/shared/lib/utils";
 import {
   Search,
   QrCode,
   CheckCircle2,
-  XCircle,
   Banknote,
-  Clock,
-  MapPin,
   Receipt,
   AlertCircle,
-  UserCheck,
   ArrowLeft,
-  Zap,
+  Loader2,
+  Store,
 } from "lucide-react";
 
 export const Route = createFileRoute("/(admin)/markets/collect")({
@@ -22,145 +25,52 @@ export const Route = createFileRoute("/(admin)/markets/collect")({
   component: CollectPage,
 });
 
+// Market daily-toll collection against the real register.
+//
+// A stall counts as PAID TODAY when a confirmed, unreversed market_toll payment
+// exists against it with today's date — the same ledger the marshal dashboard
+// and the taxpayer portal read, so nobody sees a different truth.
+
+type Stall = {
+  id: string;
+  ref: string;
+  qr_token: string | null;
+  trader_name: string;
+  trader_phone: string | null;
+  market_name: string;
+  stall_number: string | null;
+  goods_category: string | null;
+  ward: string | null;
+  daily_toll: number | null;
+  status: string;
+};
+
 type CollectedTicket = {
-  traderId: string;
+  stallId: string;
   traderName: string;
   market: string;
   amount: number;
-  receiptNo: string;
+  receiptNo: string | null;
+  ref: string;
   time: string;
 };
 
-function CollectionReceipt({ ticket }: { ticket: CollectedTicket }) {
-  return (
-    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-      <div className="flex items-start gap-3">
-        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-        <div className="flex-1">
-          <div className="font-semibold text-emerald-800">Payment Collected</div>
-          <div className="mt-0.5 text-xs text-emerald-700">
-            {ticket.traderName} — {ticket.market}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="font-bold text-emerald-800">₦{ticket.amount}</div>
-          <div className="text-[10px] text-emerald-600">{ticket.time}</div>
-        </div>
-      </div>
-      <div className="mt-2 flex items-center gap-2 border-t border-emerald-200 pt-2">
-        <Receipt className="h-3.5 w-3.5 text-emerald-600" />
-        <span className="font-mono text-[11px] text-emerald-700">{ticket.receiptNo}</span>
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-emerald-600">
-          <MapPin className="h-3 w-3" />
-          GPS: 8.8799°N, 7.1341°E
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function TraderSearchResult({ t, onCollect }: { t: Trader; onCollect: (t: Trader) => void }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
-      {/* Trader info */}
-      <div className="flex items-start gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xl font-bold text-primary">
-          {t.initials}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="font-display text-lg font-bold text-ink">{t.name}</div>
-              <div className="font-mono text-xs text-muted-foreground">{t.traderId}</div>
-            </div>
-            {t.paidToday ? (
-              <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-700">
-                <CheckCircle2 className="h-4 w-4" />
-                PAID TODAY
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1.5 text-sm font-bold text-red-700">
-                <XCircle className="h-4 w-4" />
-                NOT PAID TODAY
-              </div>
-            )}
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span>
-              <strong className="text-ink">Trade:</strong> {t.tradeType}
-            </span>
-            <span>
-              <strong className="text-ink">Market:</strong> {t.marketName}
-            </span>
-            <span>
-              <strong className="text-ink">Zone:</strong> {t.zone}
-            </span>
-            <span>
-              <strong className="text-ink">Category:</strong> Category {t.category}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Payment action */}
-      {!t.paidToday ? (
-        <div className="mt-4 rounded-xl border border-border bg-surface p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-muted-foreground">Amount Due</div>
-              <div className="font-display text-2xl font-bold text-ink">₦{t.dailyRate}</div>
-              <div className="text-[11px] text-muted-foreground">
-                {t.passType === "Monthly"
-                  ? "Monthly pass holder · ₦2,000/mo"
-                  : `Daily ticket · Category ${t.category}`}
-              </div>
-            </div>
-            <button
-              onClick={() => onCollect(t)}
-              className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:opacity-95"
-            >
-              <Banknote className="h-4 w-4" />
-              Collect ₦{t.dailyRate}
-            </button>
-          </div>
-          <div className="mt-2 text-[10px] text-muted-foreground flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" />
-            Last paid: {t.lastPaid} · Compliance score: {t.complianceScore}%
-          </div>
-        </div>
-      ) : (
-        <div className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          <CheckCircle2 className="h-4 w-4" />
-          <span>
-            Already paid today. Last payment: <strong>{t.lastPaid}</strong>
-          </span>
-        </div>
-      )}
-
-      {/* Compliance bar */}
-      <div className="mt-3">
-        <div className="mb-1 flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>Compliance Score</span>
-          <span className="font-semibold">{t.complianceScore}%</span>
-        </div>
-        <div className="h-1.5 rounded-full bg-secondary">
-          <div
-            className={`h-1.5 rounded-full transition-all ${t.complianceScore >= 85 ? "bg-emerald-500" : t.complianceScore >= 60 ? "bg-amber-500" : "bg-red-500"}`}
-            style={{ width: `${t.complianceScore}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  );
+function todayStart(): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
 }
 
 function CollectPage() {
+  const { user } = useAuth();
   const [q, setQ] = useState("");
-  const [selectedMarket, setSelectedMarket] = useState("m1");
-  const [results, setResults] = useState<Trader[]>([]);
+  const [results, setResults] = useState<Stall[]>([]);
+  const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [paidToday, setPaidToday] = useState<Set<string>>(new Set());
+  const [collecting, setCollecting] = useState<string | null>(null);
   const [collected, setCollected] = useState<CollectedTicket[]>([]);
-  const [localPaid, setLocalPaid] = useState<Set<string>>(new Set());
+  const [cardFor, setCardFor] = useState<Stall | null>(null);
 
   const today = new Date().toLocaleDateString("en-NG", {
     weekday: "long",
@@ -168,54 +78,97 @@ function CollectPage() {
     month: "long",
     year: "numeric",
   });
-  const officer = marketOfficers[0];
-  const market = markets.find((m) => m.id === selectedMarket);
 
-  // Today's session stats
-  const marketTraders = traders.filter((t) => t.marketId === selectedMarket);
-  const paidCount = marketTraders.filter((t) => t.paidToday || localPaid.has(t.id)).length;
-  const totalRevenue =
-    collected.reduce((s, c) => s + c.amount, 0) +
-    marketTraders.filter((t) => t.paidToday).reduce((s, t) => s + t.dailyRate, 0);
+  /** Refresh paid-today status for the stalls currently on screen. */
+  const refreshPaid = useCallback(async (stalls: Stall[]) => {
+    if (!stalls.length) return;
+    const { data } = await supabase
+      .from("payments")
+      .select("source_id")
+      .eq("source_table", "market_stalls")
+      .in("source_id", stalls.map((s) => s.id))
+      .eq("status", "confirmed")
+      .gte("created_at", todayStart());
+    setPaidToday(new Set(((data ?? []) as { source_id: string }[]).map((p) => p.source_id)));
+  }, []);
 
-  const search = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!q.trim()) return;
-    const found = traders.filter((t) => {
-      const inMarket = !selectedMarket || t.marketId === selectedMarket;
-      const matchQ =
-        t.name.toLowerCase().includes(q.toLowerCase()) ||
-        t.traderId.toLowerCase().includes(q.toLowerCase()) ||
-        t.phone.includes(q);
-      return inMarket && matchQ;
-    });
-    setResults(found);
-    setSearched(true);
+  const search = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const term = q.trim();
+    if (!term) return;
+    setSearching(true);
+    try {
+      // Match on name, public ref, stall number, phone — or the opaque QR token
+      // an officer gets by scanning the trader's ID card.
+      const like = `%${term.replace(/[%_]/g, "")}%`;
+      const { data, error } = await supabase
+        .from("market_stalls")
+        .select(
+          "id, ref, qr_token, trader_name, trader_phone, market_name, stall_number, goods_category, ward, daily_toll, status",
+        )
+        .or(
+          `trader_name.ilike.${like},ref.ilike.${like},stall_number.ilike.${like},trader_phone.ilike.${like},qr_token.eq.${term}`,
+        )
+        .eq("status", "Active")
+        .order("trader_name")
+        .limit(20);
+      if (error) throw new Error(error.message);
+      const stalls = (data ?? []) as Stall[];
+      setResults(stalls);
+      setSearched(true);
+      await refreshPaid(stalls);
+      if (stalls.length === 0) toast.info("No active trader matches that search");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Search failed");
+    } finally {
+      setSearching(false);
+    }
   };
 
-  const collect = (t: Trader) => {
-    const n = Math.floor(100000 + Math.random() * 899999);
-    const receiptNo = `KWL-MKT-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${n}`;
-    const now = new Date().toLocaleTimeString("en-NG", { hour: "2-digit", minute: "2-digit" });
-    setCollected((prev) => [
-      {
-        traderId: t.id,
-        traderName: t.name,
-        market: t.marketName,
-        amount: t.dailyRate,
-        receiptNo,
-        time: now,
-      },
-      ...prev,
-    ]);
-    setLocalPaid((prev) => new Set([...prev, t.id]));
-    setResults((prev) => prev.map((r) => (r.id === t.id ? { ...r, paidToday: true } : r)));
+  const collect = async (stall: Stall) => {
+    if (!user) return;
+    const amount = Number(stall.daily_toll) || 100;
+    setCollecting(stall.id);
+    try {
+      const day = new Date().toISOString().slice(0, 10);
+      const { ref, receiptNo } = await recordPayment({
+        collectorId: user.id,
+        collectorRole: "officer",
+        payerName: stall.trader_name,
+        sourceTable: "market_stalls",
+        sourceId: stall.id,
+        sourceRef: stall.ref,
+        revenueType: "market_toll",
+        amount,
+        channel: "cash",
+        ward: stall.ward,
+        obligationPeriod: day,
+        // One toll per stall per day — a double-tap retries safely instead of
+        // double-charging the trader.
+        idempotencyKey: `toll:${stall.id}:${day}`,
+      });
+      const now = new Date().toLocaleTimeString("en-NG", { hour: "2-digit", minute: "2-digit" });
+      setCollected((prev) => [
+        { stallId: stall.id, traderName: stall.trader_name, market: stall.market_name, amount, receiptNo, ref, time: now },
+        ...prev,
+      ]);
+      setPaidToday((prev) => new Set(prev).add(stall.id));
+      toast.success(`Toll collected · ${fmtNaira(amount)}`, {
+        description: receiptNo ? `Receipt ${receiptNo}` : ref,
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not record the toll");
+    } finally {
+      setCollecting(null);
+    }
   };
+
+  const totalToday = collected.reduce((s, c) => s + c.amount, 0);
 
   return (
     <DashboardShell
       title="Market Day Collection"
-      subtitle="Markets"
+      subtitle="Daily tolls"
       actions={
         <Link
           to="/markets"
@@ -226,228 +179,181 @@ function CollectPage() {
       }
     >
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left: Search & collect */}
-        <div className="space-y-5 lg:col-span-2">
-          {/* Officer + day header */}
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                  <UserCheck className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <div className="font-display text-base font-bold text-ink">{officer.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {officer.badge} · Revenue Officer
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-semibold text-ink">{today}</span>
-              </div>
-            </div>
-            {/* Market selector */}
-            <div className="mt-4 flex items-center gap-3">
-              <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-              <select
-                value={selectedMarket}
-                onChange={(e) => {
-                  setSelectedMarket(e.target.value);
-                  setResults([]);
-                  setSearched(false);
-                }}
-                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold outline-none"
-              >
-                {markets.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-              <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Live Session
-              </div>
-            </div>
-          </div>
-
-          {/* Search */}
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
-            <h2 className="mb-3 font-display text-base font-bold text-ink">Search Trader</h2>
-            <form onSubmit={search} className="flex gap-2">
+        {/* Search + results */}
+        <div className="space-y-4 lg:col-span-2">
+          <div className="surface-card p-6">
+            <h2 className="font-display text-lg font-bold text-ink">Find a trader</h2>
+            <p className="text-sm text-muted-foreground">
+              Search by name, trader ID, stall or phone — or scan the QR on their ID card. Today is{" "}
+              <span className="font-semibold text-ink">{today}</span>.
+            </p>
+            <form onSubmit={search} className="mt-4 flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Name, Trader ID or phone number…"
-                  className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-3 text-sm outline-none ring-primary/30 transition focus:ring-2"
+                  placeholder="e.g. Hauwa Musa · KWL-TRD-2026-… · B12"
+                  className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-3 text-sm"
                 />
               </div>
               <button
                 type="submit"
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-95"
+                disabled={searching}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-95 disabled:opacity-60"
               >
-                <Search className="h-4 w-4" /> Search
+                {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
+                Find
               </button>
             </form>
-            <p className="mt-2 text-[11px] text-muted-foreground flex items-center gap-1">
-              <QrCode className="h-3 w-3" />
-              In the mobile app, officers can scan the trader's QR card directly
-            </p>
           </div>
 
-          {/* Results */}
-          {searched && (
-            <div className="space-y-3">
-              {results.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-[var(--shadow-card)]">
-                  <AlertCircle className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
-                  <div className="font-semibold text-ink">No trader found</div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Check the name or ID. If this is a new trader, register them first.
-                  </p>
-                  <Link
-                    to="/markets/register"
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-95"
-                  >
-                    Register New Trader
-                  </Link>
-                </div>
-              ) : (
-                results.map((t) => (
-                  <TraderSearchResult
-                    key={t.id}
-                    t={{ ...t, paidToday: t.paidToday || localPaid.has(t.id) }}
-                    onCollect={collect}
-                  />
-                ))
-              )}
-            </div>
-          )}
-
-          {/* Recent collections */}
-          {collected.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="font-display text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                Receipts Issued This Session
-              </h3>
-              {collected.map((c) => (
-                <CollectionReceipt key={c.receiptNo} ticket={c} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Right: Session summary */}
-        <div className="space-y-5">
-          {/* Today's stats */}
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
-            <h2 className="mb-4 font-display text-base font-bold text-ink">Today's Session</h2>
-            <div className="text-xs font-semibold text-muted-foreground mb-1">{market?.name}</div>
-            <div className="space-y-3">
-              {[
-                {
-                  label: "Registered",
-                  value: market?.traders ?? 0,
-                  icon: <UserCheck className="h-4 w-4" />,
-                  color: "text-primary",
-                },
-                {
-                  label: "Present (est.)",
-                  value: Math.round((market?.traders ?? 0) * 0.77),
-                  icon: <CheckCircle2 className="h-4 w-4" />,
-                  color: "text-emerald-600",
-                },
-                {
-                  label: "Paid Today",
-                  value: paidCount + collected.length,
-                  icon: <Banknote className="h-4 w-4" />,
-                  color: "text-emerald-700",
-                },
-                {
-                  label: "Revenue Collected",
-                  value: `₦${(totalRevenue + collected.reduce((s, c) => s + c.amount, 0)).toLocaleString()}`,
-                  icon: <Receipt className="h-4 w-4" />,
-                  color: "text-primary",
-                },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2.5"
-                >
-                  <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className={s.color}>{s.icon}</span>
-                    {s.label}
-                  </span>
-                  <span className={`font-bold text-sm ${s.color}`}>{s.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Officer stats */}
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
-            <h2 className="mb-4 font-display text-base font-bold text-ink">Officer Performance</h2>
-            <div className="space-y-3">
-              {marketOfficers.slice(0, 3).map((o) => (
-                <div key={o.id} className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                    {o.name
-                      .split(" ")
-                      .map((p) => p[0])
-                      .join("")
-                      .slice(1, 3)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-ink">{o.name}</div>
-                    <div className="text-[11px] text-muted-foreground">
-                      {o.receiptsToday} receipts
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-primary">
-                      ₦{(o.collectedToday / 1000).toFixed(0)}K
-                    </div>
-                    <div
-                      className={`text-[10px] font-semibold ${o.efficiency >= 85 ? "text-emerald-600" : "text-amber-600"}`}
-                    >
-                      {o.efficiency}%
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Quick tip */}
-          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
-            <div className="flex items-start gap-3">
-              <Zap className="h-4 w-4 shrink-0 text-primary mt-0.5" />
-              <p className="text-xs leading-relaxed text-foreground/80">
-                Every collection generates a <strong>receipt number</strong>,{" "}
-                <strong>officer ID</strong>, <strong>GPS stamp</strong> and{" "}
-                <strong>timestamp</strong>. No receipt = no valid collection.
+          {searched && results.length === 0 && !searching && (
+            <div className="surface-card p-10 text-center">
+              <Store className="mx-auto h-8 w-8 text-muted-foreground/50" />
+              <p className="mt-2 text-sm font-semibold text-ink">No active trader found</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Check the spelling, or ask a marshal to onboard the trader first.
               </p>
             </div>
+          )}
+
+          {results.map((stall) => {
+            const paid = paidToday.has(stall.id);
+            const toll = Number(stall.daily_toll) || 100;
+            const busy = collecting === stall.id;
+            return (
+              <div key={stall.id} className="surface-card p-5">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-base font-bold text-primary">
+                    {stall.trader_name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <div className="font-display text-base font-bold text-ink">
+                          {stall.trader_name}
+                        </div>
+                        <div className="font-mono text-xs text-muted-foreground">{stall.ref}</div>
+                      </div>
+                      {paid ? (
+                        <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> PAID TODAY
+                        </span>
+                      ) : (
+                        <StatusBadge tone="danger">NOT PAID</StatusBadge>
+                      )}
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      <span><strong className="text-ink">Market:</strong> {stall.market_name}</span>
+                      <span><strong className="text-ink">Stall:</strong> {stall.stall_number ?? "—"}</span>
+                      <span><strong className="text-ink">Goods:</strong> {stall.goods_category ?? "—"}</span>
+                      <span><strong className="text-ink">Ward:</strong> {stall.ward ?? "—"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {!paid && (
+                  <div className="mt-4 flex items-center justify-between rounded-xl border border-border bg-surface p-4">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Daily toll</div>
+                      <div className="font-display text-xl font-bold text-ink">{fmtNaira(toll)}</div>
+                    </div>
+                    <button
+                      onClick={() => collect(stall)}
+                      disabled={busy}
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:opacity-95 disabled:opacity-60"
+                    >
+                      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Banknote className="h-4 w-4" />}
+                      Collect {fmtNaira(toll)}
+                    </button>
+                  </div>
+                )}
+
+                <div className="mt-3 flex items-center gap-3 text-[11px]">
+                  <button
+                    onClick={() => setCardFor(stall)}
+                    className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                  >
+                    <QrCode className="h-3 w-3" /> View ID card
+                  </button>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <AlertCircle className="h-3 w-3" />
+                    {paid ? "Toll settled for today" : "Collect before trading begins"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Session summary + ID card preview */}
+        <div className="space-y-4">
+          <div className="surface-card p-5">
+            <h3 className="font-display text-base font-bold text-ink">Today's session</h3>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-secondary/50 p-3 text-center">
+                <div className="font-display text-2xl font-bold text-primary">{collected.length}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Tolls collected
+                </div>
+              </div>
+              <div className="rounded-xl bg-secondary/50 p-3 text-center">
+                <div className="font-display text-2xl font-bold text-primary">{fmtNaira(totalToday)}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  This session
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Nav links */}
-          <div className="space-y-2">
-            <Link
-              to="/markets/traders"
-              className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-secondary"
-            >
-              <UserCheck className="h-4 w-4 text-primary" /> Trader Directory
-            </Link>
-            <Link
-              to="/markets/register"
-              className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-secondary"
-            >
-              <UserCheck className="h-4 w-4 text-primary" /> Register New Trader
-            </Link>
-          </div>
+          {cardFor && (
+            <div className="surface-card p-5">
+              <h3 className="mb-3 font-display text-base font-bold text-ink">Trader ID card</h3>
+              <TaxpayerIdCard
+                refNo={cardFor.ref}
+                qrToken={cardFor.qr_token}
+                name={cardFor.trader_name}
+                kind="Market Trader"
+                lines={[
+                  { label: "Market", value: cardFor.market_name },
+                  { label: "Stall", value: cardFor.stall_number ?? "—" },
+                  { label: "Goods", value: cardFor.goods_category ?? "—" },
+                  { label: "Ward", value: cardFor.ward ?? "—" },
+                ]}
+              />
+            </div>
+          )}
+
+          {collected.length > 0 && (
+            <div className="surface-card p-5">
+              <h3 className="font-display text-base font-bold text-ink">Collected this session</h3>
+              <div className="mt-3 space-y-2">
+                {collected.map((c) => (
+                  <div
+                    key={c.ref}
+                    className="rounded-xl border border-emerald-200 bg-emerald-50 p-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-emerald-800">
+                          {c.traderName}
+                        </div>
+                        <div className="text-[11px] text-emerald-700">{c.market} · {c.time}</div>
+                      </div>
+                      <div className="shrink-0 font-bold text-emerald-800">{fmtNaira(c.amount)}</div>
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-1.5 border-t border-emerald-200 pt-1.5">
+                      <Receipt className="h-3 w-3 text-emerald-600" />
+                      <span className="font-mono text-[10px] text-emerald-700">
+                        {c.receiptNo ?? c.ref}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DashboardShell>

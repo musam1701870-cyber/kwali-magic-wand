@@ -1,8 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { TablesInsert } from "@/integrations/supabase/types";
+
+// NOTE: Input schemas use camelCase (matching the registration wizard's form
+// state). The DB columns are snake_case, so each handler branch maps the
+// validated object to the exact column names via TablesInsert<...>. Passing the
+// camelCase object straight to .insert() silently fails (no such columns).
+
+const attribution = {
+  registeredBy: z.string().uuid().optional(),
+};
 
 const TransportVehicleSchema = z.object({
+  ...attribution,
   ownerId: z.string().uuid(),
   ref: z.string(),
   vehicleType: z.enum(["motorcycle", "tricycle", "commercial-vehicle"]),
@@ -23,6 +34,7 @@ const TransportVehicleSchema = z.object({
 });
 
 const PropertySchema = z.object({
+  ...attribution,
   ownerId: z.string().uuid(),
   ref: z.string(),
   propertyType: z.string(),
@@ -44,6 +56,7 @@ const PropertySchema = z.object({
 });
 
 const MarketStallSchema = z.object({
+  ...attribution,
   ownerId: z.string().uuid(),
   ref: z.string(),
   marketName: z.string(),
@@ -61,6 +74,7 @@ const MarketStallSchema = z.object({
 });
 
 const HospitalityPermitSchema = z.object({
+  ...attribution,
   ownerId: z.string().uuid(),
   ref: z.string(),
   establishmentName: z.string(),
@@ -76,6 +90,7 @@ const HospitalityPermitSchema = z.object({
 });
 
 const PosOperatorSchema = z.object({
+  ...attribution,
   ownerId: z.string().uuid(),
   ref: z.string(),
   operatorName: z.string(),
@@ -90,6 +105,7 @@ const PosOperatorSchema = z.object({
 });
 
 const SanitationSubscriptionSchema = z.object({
+  ...attribution,
   ownerId: z.string().uuid(),
   ref: z.string(),
   subscriberName: z.string(),
@@ -103,6 +119,7 @@ const SanitationSubscriptionSchema = z.object({
 });
 
 const BusinessSchema = z.object({
+  ...attribution,
   ownerId: z.string().uuid(),
   ref: z.string(),
   taxpayerType: z.string(),
@@ -143,12 +160,203 @@ const RegistrationInputSchema = z.discriminatedUnion("table", [
   z.object({ table: z.literal("businesses"), data: BusinessSchema }),
 ]);
 
+// ---- camelCase (form) -> snake_case (column) mappers ------------------------
+
+const undef = <T>(v: T | undefined) => (v === undefined ? null : v);
+
+function mapTransport(d: z.infer<typeof TransportVehicleSchema>): TablesInsert<"transport_vehicles"> {
+  return {
+    owner_id: d.ownerId,
+    ref: d.ref,
+    vehicle_type: d.vehicleType,
+    plate_number: d.plateNumber,
+    chassis_number: undef(d.chassisNumber),
+    engine_number: undef(d.engineNumber),
+    make: undef(d.make),
+    model: undef(d.model),
+    year: undef(d.year),
+    color: undef(d.color),
+    operator_name: d.operatorName,
+    operator_phone: undef(d.operatorPhone),
+    operator_nin: undef(d.operatorNin),
+    ward: d.ward,
+    route: undef(d.route),
+    daily_ticket_price: d.dailyTicketPrice,
+    status: d.status,
+    registered_by: undef(d.registeredBy),
+  };
+}
+
+function mapProperty(d: z.infer<typeof PropertySchema>): TablesInsert<"properties"> {
+  return {
+    owner_id: d.ownerId,
+    ref: d.ref,
+    property_type: d.propertyType,
+    property_name: d.propertyName,
+    address: d.address,
+    ward: d.ward,
+    district: undef(d.district),
+    street: undef(d.street),
+    building: undef(d.building),
+    landmark: undef(d.landmark),
+    lat: undef(d.lat),
+    lng: undef(d.lng),
+    property_class: undef(d.propertyClass),
+    assessment_ref: undef(d.assessmentRef),
+    assessed_value: d.assessedValue,
+    annual_rate: d.annualRate,
+    outstanding: d.outstanding,
+    status: d.status,
+    registered_by: undef(d.registeredBy),
+  };
+}
+
+function mapMarketStall(d: z.infer<typeof MarketStallSchema>): TablesInsert<"market_stalls"> {
+  return {
+    owner_id: d.ownerId,
+    ref: d.ref,
+    market_name: d.marketName,
+    stall_number: d.stallNumber,
+    stall_type: undef(d.stallType),
+    trader_name: d.traderName,
+    trader_phone: undef(d.traderPhone),
+    trader_nin: undef(d.traderNin),
+    ward: d.ward,
+    goods_category: undef(d.goodsCategory),
+    daily_toll: d.dailyToll,
+    monthly_rent: d.monthlyRent,
+    sanitation_levy: d.sanitationLevy,
+    status: d.status,
+    registered_by: undef(d.registeredBy),
+  };
+}
+
+function mapHospitality(d: z.infer<typeof HospitalityPermitSchema>): TablesInsert<"hospitality_permits"> {
+  return {
+    owner_id: d.ownerId,
+    ref: d.ref,
+    establishment_name: d.establishmentName,
+    establishment_type: d.establishmentType,
+    address: d.address,
+    ward: d.ward,
+    rooms: undef(d.rooms),
+    capacity: undef(d.capacity),
+    annual_permit_fee: d.annualPermitFee,
+    status: d.status,
+    registered_by: undef(d.registeredBy),
+    // contactPerson / contactPhone have no dedicated columns -> keep in payload.
+    payload: { contactPerson: d.contactPerson ?? null, contactPhone: d.contactPhone ?? null },
+  };
+}
+
+function mapPos(d: z.infer<typeof PosOperatorSchema>): TablesInsert<"pos_operators"> {
+  return {
+    owner_id: d.ownerId,
+    ref: d.ref,
+    operator_name: d.operatorName,
+    business_name: undef(d.businessName),
+    phone: d.phone,
+    email: undef(d.email),
+    ward: d.ward,
+    location: undef(d.location),
+    terminal_count: d.terminalCount,
+    annual_permit_fee: d.annualPermitFee,
+    status: d.status,
+    registered_by: undef(d.registeredBy),
+  };
+}
+
+function mapSanitation(d: z.infer<typeof SanitationSubscriptionSchema>): TablesInsert<"sanitation_subscriptions"> {
+  return {
+    owner_id: d.ownerId,
+    ref: d.ref,
+    subscriber_name: d.subscriberName,
+    phone: d.phone,
+    address: d.address,
+    ward: d.ward,
+    service_type: undef(d.serviceType),
+    pickup_frequency: undef(d.pickupFrequency),
+    monthly_fee: d.monthlyFee,
+    status: d.status,
+    registered_by: undef(d.registeredBy),
+  };
+}
+
+function mapBusiness(d: z.infer<typeof BusinessSchema>): TablesInsert<"businesses"> {
+  return {
+    owner_id: d.ownerId,
+    ref: d.ref,
+    taxpayer_type: d.taxpayerType,
+    business_name: d.businessName,
+    trading_name: undef(d.tradingName),
+    category: undef(d.category),
+    industry: undef(d.industry),
+    rc_number: undef(d.rcNumber),
+    tin: undef(d.tin),
+    phone: undef(d.phone),
+    email: undef(d.email),
+    website: undef(d.website),
+    owner_name: undef(d.ownerName),
+    nin: undef(d.nin),
+    bvn: undef(d.bvn),
+    ward: undef(d.ward),
+    district: undef(d.district),
+    street: undef(d.street),
+    building: undef(d.building),
+    landmark: undef(d.landmark),
+    lat: undef(d.lat),
+    lng: undef(d.lng),
+    property_class: undef(d.propertyClass),
+    assessment_ref: undef(d.assessmentRef),
+    annual_rate: d.annualRate,
+    obligations: d.obligations,
+    documents: d.documents,
+    status: d.status,
+    registered_by: undef(d.registeredBy),
+  };
+}
+
 export const insertRegistration = createServerFn({ method: "POST" })
   .validator(RegistrationInputSchema)
   .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin.from(data.table).insert(data.data);
+    // Each branch pairs the literal table with its correctly-typed row so the
+    // Supabase client can type-check the insert.
+    let ref: string | null = null;
+    let error: { message: string } | null = null;
+
+    switch (data.table) {
+      case "transport_vehicles": {
+        const r = await supabaseAdmin.from("transport_vehicles").insert(mapTransport(data.data)).select("ref").single();
+        error = r.error; ref = r.data?.ref ?? null; break;
+      }
+      case "properties": {
+        const r = await supabaseAdmin.from("properties").insert(mapProperty(data.data)).select("ref").single();
+        error = r.error; ref = r.data?.ref ?? null; break;
+      }
+      case "market_stalls": {
+        const r = await supabaseAdmin.from("market_stalls").insert(mapMarketStall(data.data)).select("ref").single();
+        error = r.error; ref = r.data?.ref ?? null; break;
+      }
+      case "hospitality_permits": {
+        const r = await supabaseAdmin.from("hospitality_permits").insert(mapHospitality(data.data)).select("ref").single();
+        error = r.error; ref = r.data?.ref ?? null; break;
+      }
+      case "pos_operators": {
+        const r = await supabaseAdmin.from("pos_operators").insert(mapPos(data.data)).select("ref").single();
+        error = r.error; ref = r.data?.ref ?? null; break;
+      }
+      case "sanitation_subscriptions": {
+        const r = await supabaseAdmin.from("sanitation_subscriptions").insert(mapSanitation(data.data)).select("ref").single();
+        error = r.error; ref = r.data?.ref ?? null; break;
+      }
+      case "businesses": {
+        const r = await supabaseAdmin.from("businesses").insert(mapBusiness(data.data)).select("ref").single();
+        error = r.error; ref = r.data?.ref ?? null; break;
+      }
+    }
+
     if (error) {
       throw new Error(error.message);
     }
-    return { success: true };
+    return { success: true, ref };
   });

@@ -166,7 +166,7 @@ function BusinessesPage() {
   return (
     <DashboardShell
       title="Business Registry"
-      subtitle="Register, track and report businesses across all wards of Kwali Area Council"
+      subtitle="Registered business premises and operators — their category, ward and annual levy status"
       actions={
         <div className="flex gap-2">
           <button

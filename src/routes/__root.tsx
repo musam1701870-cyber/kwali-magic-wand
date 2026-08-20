@@ -104,6 +104,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     links: [
+      // Preconnect + load the brand typefaces. These are declared as design
+      // tokens (--font-display / --font-body) but were never actually loaded,
+      // so the whole app was falling back to the system font.
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap",
+      },
       {
         rel: "icon",
         type: "image/png",

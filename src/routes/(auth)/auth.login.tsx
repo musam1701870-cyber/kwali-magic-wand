@@ -3,7 +3,16 @@ import { useEffect, useState } from "react";
 import crest from "@/shared/assets/kwali-crest.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/shared/hooks/useAuth";
-import { ShieldCheck, LayoutDashboard, Users, ChevronRight, Eye, EyeOff, BadgeCheck, Gavel } from "lucide-react";
+import {
+  ShieldCheck,
+  LayoutDashboard,
+  Users,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  BadgeCheck,
+  Gavel,
+} from "lucide-react";
 
 export const Route = createFileRoute("/(auth)/auth/login")({
   head: () => ({ meta: [{ title: "Sign in — Kwali Revenue Portal" }] }),
@@ -12,11 +21,21 @@ export const Route = createFileRoute("/(auth)/auth/login")({
 
 const DEMO_ACCOUNTS = [
   {
-    label: "Admin / Chairman",
+    label: "Chairman",
+    email: "chairman@kwali.demo",
+    password: "Kwali2026!",
+    description: "Executive dashboard, revenue performance, ward intelligence, reports",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+    role: "Chairman",
+    color: "border-emerald-300/50 bg-emerald-50/50 hover:bg-emerald-50",
+    badge: "bg-emerald-100 text-emerald-700",
+  },
+  {
+    label: "Admin / Super Admin",
     email: "admin@kwali.demo",
     password: "Kwali2026!",
-    description: "Full executive dashboard, all reports, revenue intelligence",
-    icon: <LayoutDashboard className="h-4 w-4" />,
+    description: "Full admin dashboard, all reports, revenue intelligence",
+    icon: <Gavel className="h-4 w-4" />,
     role: "Admin",
     color: "border-primary/30 bg-primary/5 hover:bg-primary/10",
     badge: "bg-primary/10 text-primary",
@@ -55,7 +74,7 @@ const DEMO_ACCOUNTS = [
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, roles } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -65,22 +84,18 @@ function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      // Redirect based on role
-      if (isAdmin) {
+      // Redirect based on role from user_roles table
+      if (isAdmin || roles.includes("chairman")) {
         navigate({ to: "/executive" });
+      } else if (roles.includes("marshal")) {
+        navigate({ to: "/marshal" });
+      } else if (roles.includes("officer")) {
+        navigate({ to: "/officer" });
       } else {
-        // Check user roles from metadata or roles table
-        const userRole = user.user_metadata?.account_type || user.user_metadata?.role;
-        if (userRole === 'marshal') {
-          navigate({ to: "/marshal" });
-        } else if (userRole === 'officer') {
-          navigate({ to: "/officer" });
-        } else {
-          navigate({ to: "/portal" });
-        }
+        navigate({ to: "/portal" });
       }
     }
-  }, [user, isAdmin, loading, navigate]);
+  }, [user, isAdmin, loading, roles, navigate]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,17 +180,24 @@ function LoginPage() {
             ))}
           </div>
         </div>
-        <div className="text-xs text-white/60 pt-4 border-t border-white/10">© Kwali Area Council · FCT</div>
+        <div className="text-xs text-white/60 pt-4 border-t border-white/10">
+          © Kwali Area Council · FCT
+        </div>
       </div>
 
       {/* Right panel */}
       <div className="flex items-center justify-center bg-background px-6 py-16">
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-3">
-            <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
               <span>←</span> Back home
             </Link>
-            <h1 className="font-display text-4xl font-extrabold text-ink tracking-tight">Sign in</h1>
+            <h1 className="font-display text-4xl font-extrabold text-ink tracking-tight">
+              Sign in
+            </h1>
             <p className="text-base text-muted-foreground leading-relaxed">
               Use a demo account below or sign in with your own credentials.
             </p>
@@ -260,7 +282,10 @@ function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-semibold text-ink">Password</label>
-                <Link to="/auth/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                <Link
+                  to="/auth/forgot-password"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -285,7 +310,13 @@ function LoginPage() {
 
             {error && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
-                <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 {error}
               </div>
             )}

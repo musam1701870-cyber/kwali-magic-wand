@@ -11,12 +11,14 @@
 import { Route as rootRouteImport } from './../../routes/__root'
 import { Route as publicIndexRouteImport } from './../../routes/(public)/index'
 import { Route as publicRegisterRouteImport } from './../../routes/(public)/register'
+import { Route as publicPayRouteImport } from './../../routes/(public)/pay'
 import { Route as publicContactRouteImport } from './../../routes/(public)/contact'
 import { Route as publicAboutRouteImport } from './../../routes/(public)/about'
 import { Route as dashboardPortalRouteImport } from './../../routes/(dashboard)/portal'
 import { Route as dashboardDashboardRouteImport } from './../../routes/(dashboard)/dashboard'
 import { Route as adminTransportRouteImport } from './../../routes/(admin)/transport'
 import { Route as adminTaxpayersRouteImport } from './../../routes/(admin)/taxpayers'
+import { Route as adminStaffRouteImport } from './../../routes/(admin)/staff'
 import { Route as adminServicesRouteImport } from './../../routes/(admin)/services'
 import { Route as adminSanitationRouteImport } from './../../routes/(admin)/sanitation'
 import { Route as adminRevenueCenterRouteImport } from './../../routes/(admin)/revenue-center'
@@ -32,16 +34,32 @@ import { Route as adminComplianceRouteImport } from './../../routes/(admin)/comp
 import { Route as adminCommandCenterRouteImport } from './../../routes/(admin)/command-center'
 import { Route as adminBylawsRouteImport } from './../../routes/(admin)/bylaws'
 import { Route as adminBusinessesRouteImport } from './../../routes/(admin)/businesses'
+import { Route as publicVerifyIndexRouteImport } from './../../routes/(public)/verify.index'
 import { Route as publicPropertiesIndexRouteImport } from './../../routes/(public)/properties.index'
 import { Route as dashboardOfficerIndexRouteImport } from './../../routes/(dashboard)/officer/index'
 import { Route as dashboardMarshalIndexRouteImport } from './../../routes/(dashboard)/marshal/index'
+import { Route as ApiPublicVerifyReceiptRouteImport } from './../../routes/api/public/verify-receipt'
 import { Route as ApiPublicSeedDemoRouteImport } from './../../routes/api/public/seed-demo'
+import { Route as ApiPublicPayReferenceRouteImport } from './../../routes/api/public/pay-reference'
+import { Route as ApiPublicLookupRouteImport } from './../../routes/api/public/lookup'
+import { Route as publicVerifyTokenRouteImport } from './../../routes/(public)/verify.$token'
 import { Route as publicPropertiesRegisterRouteImport } from './../../routes/(public)/properties.register'
 import { Route as authAuthSignupRouteImport } from './../../routes/(auth)/auth.signup'
 import { Route as authAuthLoginRouteImport } from './../../routes/(auth)/auth.login'
 import { Route as adminMarketsTradersRouteImport } from './../../routes/(admin)/markets.traders'
 import { Route as adminMarketsRegisterRouteImport } from './../../routes/(admin)/markets.register'
 import { Route as adminMarketsCollectRouteImport } from './../../routes/(admin)/markets.collect'
+import { Route as adminExecutiveWardsRouteImport } from './../../routes/(admin)/executive.wards'
+import { Route as adminExecutiveTransportRouteImport } from './../../routes/(admin)/executive.transport'
+import { Route as adminExecutiveRevenueRouteImport } from './../../routes/(admin)/executive.revenue'
+import { Route as adminExecutiveReportsRouteImport } from './../../routes/(admin)/executive.reports'
+import { Route as adminExecutivePaymentsRouteImport } from './../../routes/(admin)/executive.payments'
+import { Route as adminExecutiveNoticesRouteImport } from './../../routes/(admin)/executive.notices'
+import { Route as adminExecutiveMarketsRouteImport } from './../../routes/(admin)/executive.markets'
+import { Route as adminExecutiveIntelligenceRouteImport } from './../../routes/(admin)/executive.intelligence'
+import { Route as adminExecutiveGisRouteImport } from './../../routes/(admin)/executive.gis'
+import { Route as adminExecutiveEnforcementRouteImport } from './../../routes/(admin)/executive.enforcement'
+import { Route as adminExecutiveComplianceRouteImport } from './../../routes/(admin)/executive.compliance'
 
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
@@ -51,6 +69,11 @@ const publicIndexRoute = publicIndexRouteImport.update({
 const publicRegisterRoute = publicRegisterRouteImport.update({
   id: '/(public)/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const publicPayRoute = publicPayRouteImport.update({
+  id: '/(public)/pay',
+  path: '/pay',
   getParentRoute: () => rootRouteImport,
 } as any)
 const publicContactRoute = publicContactRouteImport.update({
@@ -81,6 +104,11 @@ const adminTransportRoute = adminTransportRouteImport.update({
 const adminTaxpayersRoute = adminTaxpayersRouteImport.update({
   id: '/(admin)/taxpayers',
   path: '/taxpayers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const adminStaffRoute = adminStaffRouteImport.update({
+  id: '/(admin)/staff',
+  path: '/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
 const adminServicesRoute = adminServicesRouteImport.update({
@@ -158,6 +186,11 @@ const adminBusinessesRoute = adminBusinessesRouteImport.update({
   path: '/businesses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const publicVerifyIndexRoute = publicVerifyIndexRouteImport.update({
+  id: '/(public)/verify/',
+  path: '/verify/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const publicPropertiesIndexRoute = publicPropertiesIndexRouteImport.update({
   id: '/(public)/properties/',
   path: '/properties/',
@@ -173,9 +206,29 @@ const dashboardMarshalIndexRoute = dashboardMarshalIndexRouteImport.update({
   path: '/marshal/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicVerifyReceiptRoute = ApiPublicVerifyReceiptRouteImport.update({
+  id: '/api/public/verify-receipt',
+  path: '/api/public/verify-receipt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSeedDemoRoute = ApiPublicSeedDemoRouteImport.update({
   id: '/api/public/seed-demo',
   path: '/api/public/seed-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPayReferenceRoute = ApiPublicPayReferenceRouteImport.update({
+  id: '/api/public/pay-reference',
+  path: '/api/public/pay-reference',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLookupRoute = ApiPublicLookupRouteImport.update({
+  id: '/api/public/lookup',
+  path: '/api/public/lookup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const publicVerifyTokenRoute = publicVerifyTokenRouteImport.update({
+  id: '/(public)/verify/$token',
+  path: '/verify/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const publicPropertiesRegisterRoute =
@@ -209,13 +262,71 @@ const adminMarketsCollectRoute = adminMarketsCollectRouteImport.update({
   path: '/collect',
   getParentRoute: () => adminMarketsRoute,
 } as any)
+const adminExecutiveWardsRoute = adminExecutiveWardsRouteImport.update({
+  id: '/wards',
+  path: '/wards',
+  getParentRoute: () => adminExecutiveRoute,
+} as any)
+const adminExecutiveTransportRoute = adminExecutiveTransportRouteImport.update({
+  id: '/transport',
+  path: '/transport',
+  getParentRoute: () => adminExecutiveRoute,
+} as any)
+const adminExecutiveRevenueRoute = adminExecutiveRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => adminExecutiveRoute,
+} as any)
+const adminExecutiveReportsRoute = adminExecutiveReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => adminExecutiveRoute,
+} as any)
+const adminExecutivePaymentsRoute = adminExecutivePaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => adminExecutiveRoute,
+} as any)
+const adminExecutiveNoticesRoute = adminExecutiveNoticesRouteImport.update({
+  id: '/notices',
+  path: '/notices',
+  getParentRoute: () => adminExecutiveRoute,
+} as any)
+const adminExecutiveMarketsRoute = adminExecutiveMarketsRouteImport.update({
+  id: '/markets',
+  path: '/markets',
+  getParentRoute: () => adminExecutiveRoute,
+} as any)
+const adminExecutiveIntelligenceRoute =
+  adminExecutiveIntelligenceRouteImport.update({
+    id: '/intelligence',
+    path: '/intelligence',
+    getParentRoute: () => adminExecutiveRoute,
+  } as any)
+const adminExecutiveGisRoute = adminExecutiveGisRouteImport.update({
+  id: '/gis',
+  path: '/gis',
+  getParentRoute: () => adminExecutiveRoute,
+} as any)
+const adminExecutiveEnforcementRoute =
+  adminExecutiveEnforcementRouteImport.update({
+    id: '/enforcement',
+    path: '/enforcement',
+    getParentRoute: () => adminExecutiveRoute,
+  } as any)
+const adminExecutiveComplianceRoute =
+  adminExecutiveComplianceRouteImport.update({
+    id: '/compliance',
+    path: '/compliance',
+    getParentRoute: () => adminExecutiveRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/businesses': typeof adminBusinessesRoute
   '/bylaws': typeof adminBylawsRoute
   '/command-center': typeof adminCommandCenterRoute
   '/compliance': typeof adminComplianceRoute
-  '/executive': typeof adminExecutiveRoute
+  '/executive': typeof adminExecutiveRouteWithChildren
   '/gis': typeof adminGisRoute
   '/intelligence': typeof adminIntelligenceRoute
   '/markets': typeof adminMarketsRouteWithChildren
@@ -226,31 +337,49 @@ export interface FileRoutesByFullPath {
   '/revenue-center': typeof adminRevenueCenterRoute
   '/sanitation': typeof adminSanitationRoute
   '/services': typeof adminServicesRoute
+  '/staff': typeof adminStaffRoute
   '/taxpayers': typeof adminTaxpayersRoute
   '/transport': typeof adminTransportRoute
   '/dashboard': typeof dashboardDashboardRoute
   '/portal': typeof dashboardPortalRoute
   '/about': typeof publicAboutRoute
   '/contact': typeof publicContactRoute
+  '/pay': typeof publicPayRoute
   '/register': typeof publicRegisterRoute
   '/': typeof publicIndexRoute
+  '/executive/compliance': typeof adminExecutiveComplianceRoute
+  '/executive/enforcement': typeof adminExecutiveEnforcementRoute
+  '/executive/gis': typeof adminExecutiveGisRoute
+  '/executive/intelligence': typeof adminExecutiveIntelligenceRoute
+  '/executive/markets': typeof adminExecutiveMarketsRoute
+  '/executive/notices': typeof adminExecutiveNoticesRoute
+  '/executive/payments': typeof adminExecutivePaymentsRoute
+  '/executive/reports': typeof adminExecutiveReportsRoute
+  '/executive/revenue': typeof adminExecutiveRevenueRoute
+  '/executive/transport': typeof adminExecutiveTransportRoute
+  '/executive/wards': typeof adminExecutiveWardsRoute
   '/markets/collect': typeof adminMarketsCollectRoute
   '/markets/register': typeof adminMarketsRegisterRoute
   '/markets/traders': typeof adminMarketsTradersRoute
   '/auth/login': typeof authAuthLoginRoute
   '/auth/signup': typeof authAuthSignupRoute
   '/properties/register': typeof publicPropertiesRegisterRoute
+  '/verify/$token': typeof publicVerifyTokenRoute
+  '/api/public/lookup': typeof ApiPublicLookupRoute
+  '/api/public/pay-reference': typeof ApiPublicPayReferenceRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
+  '/api/public/verify-receipt': typeof ApiPublicVerifyReceiptRoute
   '/marshal/': typeof dashboardMarshalIndexRoute
   '/officer/': typeof dashboardOfficerIndexRoute
   '/properties/': typeof publicPropertiesIndexRoute
+  '/verify/': typeof publicVerifyIndexRoute
 }
 export interface FileRoutesByTo {
   '/businesses': typeof adminBusinessesRoute
   '/bylaws': typeof adminBylawsRoute
   '/command-center': typeof adminCommandCenterRoute
   '/compliance': typeof adminComplianceRoute
-  '/executive': typeof adminExecutiveRoute
+  '/executive': typeof adminExecutiveRouteWithChildren
   '/gis': typeof adminGisRoute
   '/intelligence': typeof adminIntelligenceRoute
   '/markets': typeof adminMarketsRouteWithChildren
@@ -261,24 +390,42 @@ export interface FileRoutesByTo {
   '/revenue-center': typeof adminRevenueCenterRoute
   '/sanitation': typeof adminSanitationRoute
   '/services': typeof adminServicesRoute
+  '/staff': typeof adminStaffRoute
   '/taxpayers': typeof adminTaxpayersRoute
   '/transport': typeof adminTransportRoute
   '/dashboard': typeof dashboardDashboardRoute
   '/portal': typeof dashboardPortalRoute
   '/about': typeof publicAboutRoute
   '/contact': typeof publicContactRoute
+  '/pay': typeof publicPayRoute
   '/register': typeof publicRegisterRoute
   '/': typeof publicIndexRoute
+  '/executive/compliance': typeof adminExecutiveComplianceRoute
+  '/executive/enforcement': typeof adminExecutiveEnforcementRoute
+  '/executive/gis': typeof adminExecutiveGisRoute
+  '/executive/intelligence': typeof adminExecutiveIntelligenceRoute
+  '/executive/markets': typeof adminExecutiveMarketsRoute
+  '/executive/notices': typeof adminExecutiveNoticesRoute
+  '/executive/payments': typeof adminExecutivePaymentsRoute
+  '/executive/reports': typeof adminExecutiveReportsRoute
+  '/executive/revenue': typeof adminExecutiveRevenueRoute
+  '/executive/transport': typeof adminExecutiveTransportRoute
+  '/executive/wards': typeof adminExecutiveWardsRoute
   '/markets/collect': typeof adminMarketsCollectRoute
   '/markets/register': typeof adminMarketsRegisterRoute
   '/markets/traders': typeof adminMarketsTradersRoute
   '/auth/login': typeof authAuthLoginRoute
   '/auth/signup': typeof authAuthSignupRoute
   '/properties/register': typeof publicPropertiesRegisterRoute
+  '/verify/$token': typeof publicVerifyTokenRoute
+  '/api/public/lookup': typeof ApiPublicLookupRoute
+  '/api/public/pay-reference': typeof ApiPublicPayReferenceRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
+  '/api/public/verify-receipt': typeof ApiPublicVerifyReceiptRoute
   '/marshal': typeof dashboardMarshalIndexRoute
   '/officer': typeof dashboardOfficerIndexRoute
   '/properties': typeof publicPropertiesIndexRoute
+  '/verify': typeof publicVerifyIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -286,7 +433,7 @@ export interface FileRoutesById {
   '/(admin)/bylaws': typeof adminBylawsRoute
   '/(admin)/command-center': typeof adminCommandCenterRoute
   '/(admin)/compliance': typeof adminComplianceRoute
-  '/(admin)/executive': typeof adminExecutiveRoute
+  '/(admin)/executive': typeof adminExecutiveRouteWithChildren
   '/(admin)/gis': typeof adminGisRoute
   '/(admin)/intelligence': typeof adminIntelligenceRoute
   '/(admin)/markets': typeof adminMarketsRouteWithChildren
@@ -297,24 +444,42 @@ export interface FileRoutesById {
   '/(admin)/revenue-center': typeof adminRevenueCenterRoute
   '/(admin)/sanitation': typeof adminSanitationRoute
   '/(admin)/services': typeof adminServicesRoute
+  '/(admin)/staff': typeof adminStaffRoute
   '/(admin)/taxpayers': typeof adminTaxpayersRoute
   '/(admin)/transport': typeof adminTransportRoute
   '/(dashboard)/dashboard': typeof dashboardDashboardRoute
   '/(dashboard)/portal': typeof dashboardPortalRoute
   '/(public)/about': typeof publicAboutRoute
   '/(public)/contact': typeof publicContactRoute
+  '/(public)/pay': typeof publicPayRoute
   '/(public)/register': typeof publicRegisterRoute
   '/(public)/': typeof publicIndexRoute
+  '/(admin)/executive/compliance': typeof adminExecutiveComplianceRoute
+  '/(admin)/executive/enforcement': typeof adminExecutiveEnforcementRoute
+  '/(admin)/executive/gis': typeof adminExecutiveGisRoute
+  '/(admin)/executive/intelligence': typeof adminExecutiveIntelligenceRoute
+  '/(admin)/executive/markets': typeof adminExecutiveMarketsRoute
+  '/(admin)/executive/notices': typeof adminExecutiveNoticesRoute
+  '/(admin)/executive/payments': typeof adminExecutivePaymentsRoute
+  '/(admin)/executive/reports': typeof adminExecutiveReportsRoute
+  '/(admin)/executive/revenue': typeof adminExecutiveRevenueRoute
+  '/(admin)/executive/transport': typeof adminExecutiveTransportRoute
+  '/(admin)/executive/wards': typeof adminExecutiveWardsRoute
   '/(admin)/markets/collect': typeof adminMarketsCollectRoute
   '/(admin)/markets/register': typeof adminMarketsRegisterRoute
   '/(admin)/markets/traders': typeof adminMarketsTradersRoute
   '/(auth)/auth/login': typeof authAuthLoginRoute
   '/(auth)/auth/signup': typeof authAuthSignupRoute
   '/(public)/properties/register': typeof publicPropertiesRegisterRoute
+  '/(public)/verify/$token': typeof publicVerifyTokenRoute
+  '/api/public/lookup': typeof ApiPublicLookupRoute
+  '/api/public/pay-reference': typeof ApiPublicPayReferenceRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
+  '/api/public/verify-receipt': typeof ApiPublicVerifyReceiptRoute
   '/(dashboard)/marshal/': typeof dashboardMarshalIndexRoute
   '/(dashboard)/officer/': typeof dashboardOfficerIndexRoute
   '/(public)/properties/': typeof publicPropertiesIndexRoute
+  '/(public)/verify/': typeof publicVerifyIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -334,24 +499,42 @@ export interface FileRouteTypes {
     | '/revenue-center'
     | '/sanitation'
     | '/services'
+    | '/staff'
     | '/taxpayers'
     | '/transport'
     | '/dashboard'
     | '/portal'
     | '/about'
     | '/contact'
+    | '/pay'
     | '/register'
     | '/'
+    | '/executive/compliance'
+    | '/executive/enforcement'
+    | '/executive/gis'
+    | '/executive/intelligence'
+    | '/executive/markets'
+    | '/executive/notices'
+    | '/executive/payments'
+    | '/executive/reports'
+    | '/executive/revenue'
+    | '/executive/transport'
+    | '/executive/wards'
     | '/markets/collect'
     | '/markets/register'
     | '/markets/traders'
     | '/auth/login'
     | '/auth/signup'
     | '/properties/register'
+    | '/verify/$token'
+    | '/api/public/lookup'
+    | '/api/public/pay-reference'
     | '/api/public/seed-demo'
+    | '/api/public/verify-receipt'
     | '/marshal/'
     | '/officer/'
     | '/properties/'
+    | '/verify/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/businesses'
@@ -369,24 +552,42 @@ export interface FileRouteTypes {
     | '/revenue-center'
     | '/sanitation'
     | '/services'
+    | '/staff'
     | '/taxpayers'
     | '/transport'
     | '/dashboard'
     | '/portal'
     | '/about'
     | '/contact'
+    | '/pay'
     | '/register'
     | '/'
+    | '/executive/compliance'
+    | '/executive/enforcement'
+    | '/executive/gis'
+    | '/executive/intelligence'
+    | '/executive/markets'
+    | '/executive/notices'
+    | '/executive/payments'
+    | '/executive/reports'
+    | '/executive/revenue'
+    | '/executive/transport'
+    | '/executive/wards'
     | '/markets/collect'
     | '/markets/register'
     | '/markets/traders'
     | '/auth/login'
     | '/auth/signup'
     | '/properties/register'
+    | '/verify/$token'
+    | '/api/public/lookup'
+    | '/api/public/pay-reference'
     | '/api/public/seed-demo'
+    | '/api/public/verify-receipt'
     | '/marshal'
     | '/officer'
     | '/properties'
+    | '/verify'
   id:
     | '__root__'
     | '/(admin)/businesses'
@@ -404,24 +605,42 @@ export interface FileRouteTypes {
     | '/(admin)/revenue-center'
     | '/(admin)/sanitation'
     | '/(admin)/services'
+    | '/(admin)/staff'
     | '/(admin)/taxpayers'
     | '/(admin)/transport'
     | '/(dashboard)/dashboard'
     | '/(dashboard)/portal'
     | '/(public)/about'
     | '/(public)/contact'
+    | '/(public)/pay'
     | '/(public)/register'
     | '/(public)/'
+    | '/(admin)/executive/compliance'
+    | '/(admin)/executive/enforcement'
+    | '/(admin)/executive/gis'
+    | '/(admin)/executive/intelligence'
+    | '/(admin)/executive/markets'
+    | '/(admin)/executive/notices'
+    | '/(admin)/executive/payments'
+    | '/(admin)/executive/reports'
+    | '/(admin)/executive/revenue'
+    | '/(admin)/executive/transport'
+    | '/(admin)/executive/wards'
     | '/(admin)/markets/collect'
     | '/(admin)/markets/register'
     | '/(admin)/markets/traders'
     | '/(auth)/auth/login'
     | '/(auth)/auth/signup'
     | '/(public)/properties/register'
+    | '/(public)/verify/$token'
+    | '/api/public/lookup'
+    | '/api/public/pay-reference'
     | '/api/public/seed-demo'
+    | '/api/public/verify-receipt'
     | '/(dashboard)/marshal/'
     | '/(dashboard)/officer/'
     | '/(public)/properties/'
+    | '/(public)/verify/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -429,7 +648,7 @@ export interface RootRouteChildren {
   adminBylawsRoute: typeof adminBylawsRoute
   adminCommandCenterRoute: typeof adminCommandCenterRoute
   adminComplianceRoute: typeof adminComplianceRoute
-  adminExecutiveRoute: typeof adminExecutiveRoute
+  adminExecutiveRoute: typeof adminExecutiveRouteWithChildren
   adminGisRoute: typeof adminGisRoute
   adminIntelligenceRoute: typeof adminIntelligenceRoute
   adminMarketsRoute: typeof adminMarketsRouteWithChildren
@@ -440,21 +659,28 @@ export interface RootRouteChildren {
   adminRevenueCenterRoute: typeof adminRevenueCenterRoute
   adminSanitationRoute: typeof adminSanitationRoute
   adminServicesRoute: typeof adminServicesRoute
+  adminStaffRoute: typeof adminStaffRoute
   adminTaxpayersRoute: typeof adminTaxpayersRoute
   adminTransportRoute: typeof adminTransportRoute
   dashboardDashboardRoute: typeof dashboardDashboardRoute
   dashboardPortalRoute: typeof dashboardPortalRoute
   publicAboutRoute: typeof publicAboutRoute
   publicContactRoute: typeof publicContactRoute
+  publicPayRoute: typeof publicPayRoute
   publicRegisterRoute: typeof publicRegisterRoute
   publicIndexRoute: typeof publicIndexRoute
   authAuthLoginRoute: typeof authAuthLoginRoute
   authAuthSignupRoute: typeof authAuthSignupRoute
   publicPropertiesRegisterRoute: typeof publicPropertiesRegisterRoute
+  publicVerifyTokenRoute: typeof publicVerifyTokenRoute
+  ApiPublicLookupRoute: typeof ApiPublicLookupRoute
+  ApiPublicPayReferenceRoute: typeof ApiPublicPayReferenceRoute
   ApiPublicSeedDemoRoute: typeof ApiPublicSeedDemoRoute
+  ApiPublicVerifyReceiptRoute: typeof ApiPublicVerifyReceiptRoute
   dashboardMarshalIndexRoute: typeof dashboardMarshalIndexRoute
   dashboardOfficerIndexRoute: typeof dashboardOfficerIndexRoute
   publicPropertiesIndexRoute: typeof publicPropertiesIndexRoute
+  publicVerifyIndexRoute: typeof publicVerifyIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -471,6 +697,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof publicRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/pay': {
+      id: '/(public)/pay'
+      path: '/pay'
+      fullPath: '/pay'
+      preLoaderRoute: typeof publicPayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(public)/contact': {
@@ -513,6 +746,13 @@ declare module '@tanstack/react-router' {
       path: '/taxpayers'
       fullPath: '/taxpayers'
       preLoaderRoute: typeof adminTaxpayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/staff': {
+      id: '/(admin)/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof adminStaffRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(admin)/services': {
@@ -620,6 +860,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminBusinessesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(public)/verify/': {
+      id: '/(public)/verify/'
+      path: '/verify'
+      fullPath: '/verify/'
+      preLoaderRoute: typeof publicVerifyIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(public)/properties/': {
       id: '/(public)/properties/'
       path: '/properties'
@@ -641,11 +888,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof dashboardMarshalIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/verify-receipt': {
+      id: '/api/public/verify-receipt'
+      path: '/api/public/verify-receipt'
+      fullPath: '/api/public/verify-receipt'
+      preLoaderRoute: typeof ApiPublicVerifyReceiptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/seed-demo': {
       id: '/api/public/seed-demo'
       path: '/api/public/seed-demo'
       fullPath: '/api/public/seed-demo'
       preLoaderRoute: typeof ApiPublicSeedDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pay-reference': {
+      id: '/api/public/pay-reference'
+      path: '/api/public/pay-reference'
+      fullPath: '/api/public/pay-reference'
+      preLoaderRoute: typeof ApiPublicPayReferenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/lookup': {
+      id: '/api/public/lookup'
+      path: '/api/public/lookup'
+      fullPath: '/api/public/lookup'
+      preLoaderRoute: typeof ApiPublicLookupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/verify/$token': {
+      id: '/(public)/verify/$token'
+      path: '/verify/$token'
+      fullPath: '/verify/$token'
+      preLoaderRoute: typeof publicVerifyTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(public)/properties/register': {
@@ -690,8 +965,117 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminMarketsCollectRouteImport
       parentRoute: typeof adminMarketsRoute
     }
+    '/(admin)/executive/wards': {
+      id: '/(admin)/executive/wards'
+      path: '/wards'
+      fullPath: '/executive/wards'
+      preLoaderRoute: typeof adminExecutiveWardsRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/transport': {
+      id: '/(admin)/executive/transport'
+      path: '/transport'
+      fullPath: '/executive/transport'
+      preLoaderRoute: typeof adminExecutiveTransportRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/revenue': {
+      id: '/(admin)/executive/revenue'
+      path: '/revenue'
+      fullPath: '/executive/revenue'
+      preLoaderRoute: typeof adminExecutiveRevenueRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/reports': {
+      id: '/(admin)/executive/reports'
+      path: '/reports'
+      fullPath: '/executive/reports'
+      preLoaderRoute: typeof adminExecutiveReportsRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/payments': {
+      id: '/(admin)/executive/payments'
+      path: '/payments'
+      fullPath: '/executive/payments'
+      preLoaderRoute: typeof adminExecutivePaymentsRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/notices': {
+      id: '/(admin)/executive/notices'
+      path: '/notices'
+      fullPath: '/executive/notices'
+      preLoaderRoute: typeof adminExecutiveNoticesRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/markets': {
+      id: '/(admin)/executive/markets'
+      path: '/markets'
+      fullPath: '/executive/markets'
+      preLoaderRoute: typeof adminExecutiveMarketsRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/intelligence': {
+      id: '/(admin)/executive/intelligence'
+      path: '/intelligence'
+      fullPath: '/executive/intelligence'
+      preLoaderRoute: typeof adminExecutiveIntelligenceRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/gis': {
+      id: '/(admin)/executive/gis'
+      path: '/gis'
+      fullPath: '/executive/gis'
+      preLoaderRoute: typeof adminExecutiveGisRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/enforcement': {
+      id: '/(admin)/executive/enforcement'
+      path: '/enforcement'
+      fullPath: '/executive/enforcement'
+      preLoaderRoute: typeof adminExecutiveEnforcementRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
+    '/(admin)/executive/compliance': {
+      id: '/(admin)/executive/compliance'
+      path: '/compliance'
+      fullPath: '/executive/compliance'
+      preLoaderRoute: typeof adminExecutiveComplianceRouteImport
+      parentRoute: typeof adminExecutiveRoute
+    }
   }
 }
+
+interface adminExecutiveRouteChildren {
+  adminExecutiveComplianceRoute: typeof adminExecutiveComplianceRoute
+  adminExecutiveEnforcementRoute: typeof adminExecutiveEnforcementRoute
+  adminExecutiveGisRoute: typeof adminExecutiveGisRoute
+  adminExecutiveIntelligenceRoute: typeof adminExecutiveIntelligenceRoute
+  adminExecutiveMarketsRoute: typeof adminExecutiveMarketsRoute
+  adminExecutiveNoticesRoute: typeof adminExecutiveNoticesRoute
+  adminExecutivePaymentsRoute: typeof adminExecutivePaymentsRoute
+  adminExecutiveReportsRoute: typeof adminExecutiveReportsRoute
+  adminExecutiveRevenueRoute: typeof adminExecutiveRevenueRoute
+  adminExecutiveTransportRoute: typeof adminExecutiveTransportRoute
+  adminExecutiveWardsRoute: typeof adminExecutiveWardsRoute
+}
+
+const adminExecutiveRouteChildren: adminExecutiveRouteChildren = {
+  adminExecutiveComplianceRoute: adminExecutiveComplianceRoute,
+  adminExecutiveEnforcementRoute: adminExecutiveEnforcementRoute,
+  adminExecutiveGisRoute: adminExecutiveGisRoute,
+  adminExecutiveIntelligenceRoute: adminExecutiveIntelligenceRoute,
+  adminExecutiveMarketsRoute: adminExecutiveMarketsRoute,
+  adminExecutiveNoticesRoute: adminExecutiveNoticesRoute,
+  adminExecutivePaymentsRoute: adminExecutivePaymentsRoute,
+  adminExecutiveReportsRoute: adminExecutiveReportsRoute,
+  adminExecutiveRevenueRoute: adminExecutiveRevenueRoute,
+  adminExecutiveTransportRoute: adminExecutiveTransportRoute,
+  adminExecutiveWardsRoute: adminExecutiveWardsRoute,
+}
+
+const adminExecutiveRouteWithChildren = adminExecutiveRoute._addFileChildren(
+  adminExecutiveRouteChildren,
+)
 
 interface adminMarketsRouteChildren {
   adminMarketsCollectRoute: typeof adminMarketsCollectRoute
@@ -714,7 +1098,7 @@ const rootRouteChildren: RootRouteChildren = {
   adminBylawsRoute: adminBylawsRoute,
   adminCommandCenterRoute: adminCommandCenterRoute,
   adminComplianceRoute: adminComplianceRoute,
-  adminExecutiveRoute: adminExecutiveRoute,
+  adminExecutiveRoute: adminExecutiveRouteWithChildren,
   adminGisRoute: adminGisRoute,
   adminIntelligenceRoute: adminIntelligenceRoute,
   adminMarketsRoute: adminMarketsRouteWithChildren,
@@ -725,21 +1109,28 @@ const rootRouteChildren: RootRouteChildren = {
   adminRevenueCenterRoute: adminRevenueCenterRoute,
   adminSanitationRoute: adminSanitationRoute,
   adminServicesRoute: adminServicesRoute,
+  adminStaffRoute: adminStaffRoute,
   adminTaxpayersRoute: adminTaxpayersRoute,
   adminTransportRoute: adminTransportRoute,
   dashboardDashboardRoute: dashboardDashboardRoute,
   dashboardPortalRoute: dashboardPortalRoute,
   publicAboutRoute: publicAboutRoute,
   publicContactRoute: publicContactRoute,
+  publicPayRoute: publicPayRoute,
   publicRegisterRoute: publicRegisterRoute,
   publicIndexRoute: publicIndexRoute,
   authAuthLoginRoute: authAuthLoginRoute,
   authAuthSignupRoute: authAuthSignupRoute,
   publicPropertiesRegisterRoute: publicPropertiesRegisterRoute,
+  publicVerifyTokenRoute: publicVerifyTokenRoute,
+  ApiPublicLookupRoute: ApiPublicLookupRoute,
+  ApiPublicPayReferenceRoute: ApiPublicPayReferenceRoute,
   ApiPublicSeedDemoRoute: ApiPublicSeedDemoRoute,
+  ApiPublicVerifyReceiptRoute: ApiPublicVerifyReceiptRoute,
   dashboardMarshalIndexRoute: dashboardMarshalIndexRoute,
   dashboardOfficerIndexRoute: dashboardOfficerIndexRoute,
   publicPropertiesIndexRoute: publicPropertiesIndexRoute,
+  publicVerifyIndexRoute: publicVerifyIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

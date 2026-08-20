@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { DashboardShell } from "@/shared/components/layout/DashboardShell";
 import { PayDialog, type PayTarget } from "@/shared/components/layout/PayDialog";
+import { StatusBadge } from "@/shared/components/ui/status-badge";
 import { properties, payments, violations } from "@/shared/lib/kwali-mock";
 import {
   TrendingUp,
@@ -56,16 +57,22 @@ function StatCard({
           : "text-ink";
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[0_4px_24px_-8px_rgba(15,23,42,0.12)]">
+    <div className="surface-card surface-card--interactive group relative overflow-hidden p-5">
       <div className="flex items-start justify-between">
         <div className={`rounded-xl p-2.5 ${iconBg}`}>{icon}</div>
         {trend && (
-          <div
-            className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${trendUp ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}
+          <StatusBadge
+            tone={trendUp ? "success" : "danger"}
+            icon={
+              trendUp ? (
+                <TrendingUp className="h-3 w-3" />
+              ) : (
+                <TrendingDown className="h-3 w-3" />
+              )
+            }
           >
-            {trendUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
             {trend}
-          </div>
+          </StatusBadge>
         )}
       </div>
       <div className={`mt-4 font-display text-3xl font-bold tracking-tight ${valueColor}`}>
@@ -143,7 +150,7 @@ function DashboardPage() {
       {/* Main content grid */}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         {/* Outstanding bills table */}
-        <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] lg:col-span-2">
+        <div className="surface-card lg:col-span-2">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <div>
               <h2 className="font-display text-base font-bold text-ink">Outstanding bills</h2>
@@ -184,11 +191,9 @@ function DashboardPage() {
                     <div className="font-bold text-ink text-sm">
                       ₦{p.annualRate.toLocaleString()}
                     </div>
-                    <span
-                      className={`text-[11px] font-semibold ${p.status === "Overdue" ? "text-destructive" : "text-amber-600"}`}
-                    >
-                      {p.status}
-                    </span>
+                    <div className="mt-1 flex justify-end">
+                      <StatusBadge status={p.status} />
+                    </div>
                   </div>
                   <button
                     onClick={() =>
@@ -216,7 +221,7 @@ function DashboardPage() {
         {/* Right column */}
         <div className="space-y-6">
           {/* Quick actions */}
-          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
+          <div className="surface-card">
             <div className="border-b border-border px-5 py-4">
               <h2 className="font-display text-base font-bold text-ink">Quick actions</h2>
               <p className="text-xs text-muted-foreground">Frequently used shortcuts</p>
@@ -261,7 +266,7 @@ function DashboardPage() {
           </div>
 
           {/* Recent payments */}
-          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
+          <div className="surface-card">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div>
                 <h2 className="font-display text-base font-bold text-ink">Recent payments</h2>

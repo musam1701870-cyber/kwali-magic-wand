@@ -96,8 +96,8 @@ function TraderRow({ t, onClick }: { t: Trader; onClick: () => void }) {
   );
 }
 
-function printIdCard(t: Trader) {
-  exportIdCardPDF({
+async function printIdCard(t: Trader) {
+  await exportIdCardPDF({
     filename: `market-id-${t.traderId}`,
     idNo: t.traderId,
     name: t.name,

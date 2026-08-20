@@ -23,4 +23,16 @@ export default defineConfig({
     // otherwise fall back to the default (cloudflare for local/lovable builds)
     preset: (process.env.NITRO_PRESET as "vercel" | "cloudflare-pages" | undefined) ?? undefined,
   },
+  vite: {
+    optimizeDeps: {
+      include: [
+        "react",
+        "react-dom",
+        "react-dom/client",
+        "react/jsx-runtime",
+        "react/jsx-dev-runtime",
+        "@tanstack/react-query",
+      ],
+    },
+  },
 });

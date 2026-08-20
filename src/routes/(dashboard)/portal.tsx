@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import crest from "@/shared/assets/kwali-crest.png";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { PayDialog, type PayTarget } from "@/shared/components/layout/PayDialog";
+import { StatusBadge } from "@/shared/components/ui/status-badge";
+import { TaxpayerIdCard } from "@/shared/components/ui/TaxpayerIdCard";
+import { fetchMyPayments, type LedgerRow } from "@/shared/lib/revenue";
 import heroBg from "@/shared/assets/abuja-city-gate.jpg";
 import imgBusiness from "@/shared/assets/cat-business.jpg";
 import imgProperty from "@/shared/assets/cat-property.jpg";
@@ -30,17 +33,60 @@ type Biz = {
   obligations: string[] | null;
 };
 
+// Informal-sector identities that get a digital ID card: market stalls and
+// transport vehicles owned by this taxpayer. qr_token backs the scannable code.
+type IdCardRow = {
+  key: string;
+  ref: string;
+  qrToken: string | null;
+  name: string;
+  kind: string;
+  lines: { label: string; value: string }[];
+  status: string;
+  issuedAt: string;
+};
+
 function PortalPage() {
-  const { user, isAdmin, loading, signOut } = useAuth();
+  const { user, isAdmin, loading, signOut, roles } = useAuth();
   const navigate = useNavigate();
   const [list, setList] = useState<Biz[]>([]);
+  const [idCards, setIdCards] = useState<IdCardRow[]>([]);
   const [busy, setBusy] = useState(true);
   const [payTarget, setPayTarget] = useState<PayTarget | null>(null);
+  // Payment state comes from the ledger, not from local component state, so it
+  // survives a refresh and matches what the council's own records show.
+  const [myPayments, setMyPayments] = useState<LedgerRow[]>([]);
   const [paidRefs, setPaidRefs] = useState<Set<string>>(new Set());
 
+  const reloadPayments = useCallback(async () => {
+    if (!user) return;
+    const rows = await fetchMyPayments(user.id);
+    setMyPayments(rows);
+    // A business counts as settled when a confirmed, un-reversed payment exists.
+    setPaidRefs(
+      new Set(
+        rows
+          .filter((r) => r.status === "confirmed" && !r.voided && r.sourceRef)
+          .map((r) => r.sourceRef as string),
+      ),
+    );
+  }, [user]);
+
+  // Single consolidated redirect — runs only after auth finishes loading.
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth/login" });
-  }, [user, loading, navigate]);
+    if (loading) return;
+    if (!user) {
+      navigate({ to: "/auth/login" });
+      return;
+    }
+    // Only redirect away once we know the user's actual role.
+    // roles.length === 0 just means "plain taxpayer" (no row in user_roles).
+    if (roles.includes("marshal")) {
+      navigate({ to: "/marshal" });
+    } else if (roles.includes("officer")) {
+      navigate({ to: "/officer" });
+    }
+  }, [user, loading, roles, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -55,6 +101,75 @@ function PortalPage() {
         setBusy(false);
       });
   }, [user]);
+
+  // ID cards come from the informal-sector tables — the market women, petty
+  // traders and keke/okada operators this portal primarily serves.
+  useEffect(() => {
+    if (!user) return;
+    type Stall = {
+      id: string; ref: string; qr_token: string | null; trader_name: string;
+      market_name: string; stall_number: string | null; goods_category: string | null;
+      ward: string | null; status: string; created_at: string;
+    };
+    type Vehicle = {
+      id: string; ref: string; qr_token: string | null; operator_name: string;
+      plate_number: string; vehicle_type: string; route: string | null;
+      ward: string | null; status: string; created_at: string;
+    };
+    Promise.all([
+      supabase
+        .from("market_stalls")
+        .select("id,ref,qr_token,trader_name,market_name,stall_number,goods_category,ward,status,created_at")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("transport_vehicles")
+        .select("id,ref,qr_token,operator_name,plate_number,vehicle_type,route,ward,status,created_at")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false }),
+    ]).then(([stalls, vehicles]) => {
+      const cards: IdCardRow[] = [];
+      for (const s of (stalls.data ?? []) as Stall[]) {
+        cards.push({
+          key: `stall-${s.id}`,
+          ref: s.ref,
+          qrToken: s.qr_token,
+          name: s.trader_name,
+          kind: "Market Trader",
+          lines: [
+            { label: "Market", value: s.market_name },
+            { label: "Stall", value: s.stall_number ?? "—" },
+            { label: "Goods", value: s.goods_category ?? "—" },
+            { label: "Ward", value: s.ward ?? "—" },
+          ],
+          status: s.status,
+          issuedAt: s.created_at.split("T")[0],
+        });
+      }
+      for (const v of (vehicles.data ?? []) as Vehicle[]) {
+        cards.push({
+          key: `vehicle-${v.id}`,
+          ref: v.ref,
+          qrToken: v.qr_token,
+          name: v.operator_name,
+          kind: "Transport Operator",
+          lines: [
+            { label: "Plate", value: v.plate_number },
+            { label: "Vehicle", value: v.vehicle_type.replace(/-/g, " ") },
+            { label: "Route", value: v.route ?? "—" },
+            { label: "Ward", value: v.ward ?? "—" },
+          ],
+          status: v.status,
+          issuedAt: v.created_at.split("T")[0],
+        });
+      }
+      setIdCards(cards);
+    });
+  }, [user]);
+
+  useEffect(() => {
+    void reloadPayments();
+  }, [reloadPayments]);
 
   if (loading || !user) {
     return (
@@ -232,7 +347,7 @@ function PortalPage() {
               <Link
                 key={c.name}
                 to={c.to}
-                className="group overflow-hidden rounded-xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+                className="surface-card surface-card--interactive group overflow-hidden"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
@@ -262,7 +377,39 @@ function PortalPage() {
           </div>
         </section>
 
-        <section className="mt-10 rounded-2xl border border-border bg-card p-6 shadow-sm">
+        {/* Digital ID cards — informal sector identity with scannable QR */}
+        {idCards.length > 0 && (
+          <section className="mt-10">
+            <div className="flex items-end justify-between">
+              <div>
+                <h2 className="font-display text-xl font-bold text-ink">My ID cards</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Show the QR code to any enforcement officer — it confirms your identity and
+                  payment standing instantly.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {idCards.map((c) => (
+                <div key={c.key} className="space-y-2">
+                  <TaxpayerIdCard
+                    refNo={c.ref}
+                    qrToken={c.qrToken}
+                    name={c.name}
+                    kind={c.kind}
+                    lines={c.lines}
+                    issuedAt={c.issuedAt}
+                  />
+                  <div className="flex justify-center">
+                    <StatusBadge status={c.status} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="surface-card mt-10 p-6">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg font-bold">My businesses</h2>
             <Link
@@ -314,29 +461,14 @@ function PortalPage() {
                         <td className="px-3 py-3">{b.category ?? "—"}</td>
                         <td className="px-3 py-3">{b.ward ?? "—"}</td>
                         <td className="px-3 py-3">
-                          <span
-                            className={
-                              "rounded-full px-2 py-0.5 text-[10px] font-bold " +
-                              (paid
-                                ? "bg-primary/10 text-primary"
-                                : b.status === "Active"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : b.status === "Pending"
-                                    ? "bg-amber-100 text-amber-700"
-                                    : "bg-secondary")
-                            }
-                          >
-                            {paid ? "Paid" : b.status}
-                          </span>
+                          <StatusBadge status={paid ? "Paid" : b.status} />
                         </td>
                         <td className="px-3 py-3 text-right font-semibold">
                           {Number(b.annual_rate ?? 0).toLocaleString()}
                         </td>
                         <td className="px-3 py-3 text-right">
                           {paid ? (
-                            <span className="text-[11px] font-semibold text-emerald-600">
-                              ✓ Settled
-                            </span>
+                            <StatusBadge tone="success">Settled</StatusBadge>
                           ) : (
                             <button
                               onClick={() =>
@@ -346,6 +478,12 @@ function PortalPage() {
                                   category: b.category ?? "Business Permit",
                                   amount: Number(b.annual_rate ?? 0),
                                   meta: [{ label: "Ward", value: b.ward ?? "—" }],
+                                  // Identifies the real row, so the dialog raises a
+                                  // genuine ledger payment and the server re-derives
+                                  // the amount rather than trusting this page.
+                                  sourceTable: "businesses",
+                                  sourceId: b.id,
+                                  revenueType: "business_levy",
                                 })
                               }
                               className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground hover:opacity-95"
@@ -363,40 +501,52 @@ function PortalPage() {
           )}
         </section>
 
-        <section
-          id="payments"
-          className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-sm"
-        >
+        <section id="payments" className="surface-card mt-8 p-6">
           <h2 className="font-display text-lg font-bold">Payment history</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Your payments and digital receipts will appear here.
+            Every payment recorded against your account, with its official receipt.
           </p>
-          {paidRefs.size === 0 ? (
+          {myPayments.length === 0 ? (
             <div className="mt-4 rounded-xl border border-dashed border-border bg-surface/50 p-8 text-center text-sm text-muted-foreground">
               No payments yet — pay any obligation above to get started.
             </div>
           ) : (
             <div className="mt-4 divide-y divide-border">
-              {list
-                .filter((b) => paidRefs.has(b.ref))
-                .map((b) => (
-                  <div key={b.id} className="flex items-center justify-between py-3">
-                    <div>
-                      <div className="text-sm font-semibold text-ink">{b.business_name}</div>
-                      <div className="font-mono text-[11px] text-muted-foreground">
-                        {b.ref} · {b.category ?? "Permit"}
-                      </div>
+              {myPayments.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-ink">
+                      {p.payerName ?? p.sourceRef ?? "Council levy"}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-ink">
-                        ₦{Number(b.annual_rate ?? 0).toLocaleString()}
-                      </span>
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
-                        Paid
-                      </span>
+                    <div className="font-mono text-[11px] text-muted-foreground">
+                      {p.receiptNo ?? p.ref} · {p.revenueType.replace(/_/g, " ")}
+                      {p.obligationPeriod ? ` · ${p.obligationPeriod}` : ""}
                     </div>
                   </div>
-                ))}
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="font-semibold text-ink">
+                      ₦{p.amount.toLocaleString()}
+                    </span>
+                    {p.voided ? (
+                      <StatusBadge tone="danger">Reversed</StatusBadge>
+                    ) : (
+                      <StatusBadge status={p.status === "confirmed" ? "Paid" : p.status} />
+                    )}
+                    {p.verifyToken && (
+                      <Link
+                        to="/verify/$token"
+                        params={{ token: p.verifyToken }}
+                        className="text-xs font-semibold text-primary hover:underline"
+                      >
+                        Receipt
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </section>
@@ -405,7 +555,9 @@ function PortalPage() {
       <PayDialog
         target={payTarget}
         onClose={() => setPayTarget(null)}
-        onPaid={(ref) => setPaidRefs((prev) => new Set(prev).add(ref))}
+        // Re-read the ledger rather than guessing locally: the row is 'pending'
+        // until the council confirms the money, and the UI should say so.
+        onPaid={() => void reloadPayments()}
       />
     </div>
   );

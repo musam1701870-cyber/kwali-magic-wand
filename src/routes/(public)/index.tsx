@@ -3,7 +3,7 @@ import heroImg from "@/shared/assets/kwali-hero.jpg";
 import heroBg from "@/shared/assets/kwali-hero-wide.jpg";
 import { SiteNav, SiteFooter } from "@/shared/components/layout/SiteShell";
 import { useEffect, useState } from "react";
-import { wards, payments } from "@/shared/lib/kwali-mock";
+import { wards } from "@/shared/lib/kwali-mock";
 import imgBusiness from "@/shared/assets/cat-business.jpg";
 import imgProperty from "@/shared/assets/cat-property.jpg";
 import imgMarket from "@/shared/assets/cat-market.jpg";
@@ -12,6 +12,8 @@ import imgHotel from "@/shared/assets/cat-hotel.jpg";
 import imgSanitation from "@/shared/assets/cat-sanitation.jpg";
 import imgPos from "@/shared/assets/cat-pos.jpg";
 import { BylawsSection } from "@/features/bylaws/components/BylawsSection";
+import { StatusBadge, type StatusTone } from "@/shared/components/ui/status-badge";
+import { verifyReceipt, type ReceiptVerification } from "@/shared/lib/public-pay";
 
 export const Route = createFileRoute("/(public)/")({
   head: () => ({
@@ -79,21 +81,22 @@ function Hero() {
             Pay your Kwali council levies <span className="text-gold">in minutes</span>.
           </h1>
           <p className="mt-6 max-w-xl text-lg text-white/85">
-            Tenement, business, sanitation and transport revenues — one portal, one receipt.
-            Register your property or vehicle, get an automatic bill, and pay securely with
-            Paystack.
+            Tenement, business, sanitation and transport revenues — one portal, one receipt. Get
+            your bill from your taxpayer ID and pay by bank transfer, USSD or cash to a council
+            agent.
           </p>
 
-          {/* Quick-pay strip */}
+          {/* Quick-pay strip — goes straight to the no-login payment flow with the
+              taxpayer ID prefilled. It used to bounce everyone to the login page,
+              which is exactly the barrier a market trader cannot clear. */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              window.location.assign(
-                `/auth/login?ref=${encodeURIComponent(ref)}&ward=${encodeURIComponent(ward)}`,
-              );
+              const id = ref.trim();
+              window.location.assign(id ? `/pay?id=${encodeURIComponent(id)}` : "/pay");
             }}
             className="mt-7 rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur-md"
-            aria-label="Quick pay or verify a bill"
+            aria-label="Pay a bill with your taxpayer ID"
           >
             <div className="flex flex-col gap-2 sm:flex-row">
               <select
@@ -109,22 +112,22 @@ function Hero() {
                 ))}
               </select>
               <input
-                aria-label="Bill or receipt reference"
+                aria-label="Taxpayer ID"
                 value={ref}
                 onChange={(e) => setRef(e.target.value)}
-                placeholder="Enter bill / receipt ref (e.g. KWL-REF-2026-00481)"
+                placeholder="Enter your taxpayer ID (e.g. KWL-TRD-2026-001234)"
                 className="flex-1 rounded-md border border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/60 outline-none ring-gold/40 focus:ring-2"
               />
               <button className="rounded-md bg-gold px-5 py-2.5 text-sm font-bold text-gold-foreground transition hover:-translate-y-0.5 hover:opacity-95">
-                Quick pay →
+                Make payment →
               </button>
             </div>
             <div className="mt-2 text-[11px] text-white/70">
-              No reference?{" "}
-              <Link to="/auth/signup" className="underline">
-                Create an account
-              </Link>{" "}
-              to generate one.
+              No account needed. Checking a receipt?{" "}
+              <Link to="/verify" className="underline">
+                Verify a receipt
+              </Link>
+              .
             </div>
           </form>
 
@@ -271,8 +274,8 @@ const steps = [
   },
   {
     n: "03",
-    t: "Pay online",
-    d: "Pay securely with Paystack — card, transfer or USSD. Idempotent, no double charges.",
+    t: "Pay your levy",
+    d: "Bank transfer, USSD or cash to a council agent — every payment lands in one central record.",
   },
   {
     n: "04",
@@ -605,7 +608,7 @@ const faqs = [
   ],
   [
     "Is online payment secure?",
-    "Yes. Payments are processed by Paystack with PCI-DSS compliance and idempotency tokens to prevent duplicate charges.",
+    "Every payment is recorded once in the council's central ledger and confirmed against the money actually received — never on a browser saying it succeeded. Each confirmed payment produces exactly one official receipt, so a retry can never charge or count you twice. Receipts carry a QR code anyone can scan to check they are genuine.",
   ],
   [
     "Can I verify a receipt?",
@@ -645,25 +648,22 @@ function FAQ() {
   );
 }
 
-type LookupResult =
-  | { status: "found"; payment: (typeof payments)[number] }
-  | { status: "notfound"; ref: string };
-
 function ReceiptLookup() {
   const [ref, setRef] = useState("");
-  const [result, setResult] = useState<LookupResult | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<ReceiptVerification | null>(null);
 
-  function verify(e: React.FormEvent) {
+  // Hits the real verification endpoint against the receipts table. This used to
+  // search a hardcoded array of sample payments in the browser, so it confirmed
+  // invented receipts as "genuine" and rejected every real one.
+  async function verify(e: React.FormEvent) {
     e.preventDefault();
-    const needle = ref.trim().toLowerCase();
+    const needle = ref.trim();
     if (!needle) return;
-    const payment = payments.find(
-      (p) => p.rrr.toLowerCase() === needle || p.rrr.toLowerCase().includes(needle),
-    );
-    setResult(payment ? { status: "found", payment } : { status: "notfound", ref: ref.trim() });
+    setBusy(true);
+    setResult(await verifyReceipt(needle));
+    setBusy(false);
   }
-
-  const sample = payments[0]?.rrr;
 
   return (
     <section id="verify" className="bg-surface py-16">
@@ -671,70 +671,72 @@ function ReceiptLookup() {
         <p className="text-sm font-semibold uppercase tracking-widest text-primary">
           Verify a receipt
         </p>
-        <h2 className="mt-3 text-3xl font-bold text-ink">Confirm any KURCMS payment</h2>
+        <h2 className="mt-3 text-3xl font-bold text-ink">Confirm any council payment</h2>
         <p className="mt-3 text-muted-foreground">
-          Enter a receipt reference
-          {sample ? (
-            <>
-              {" "}
-              (e.g. <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">{sample}</code>)
-            </>
-          ) : null}{" "}
-          or scan the QR on the receipt.
+          Enter a receipt number (e.g.{" "}
+          <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">RCP-2026-00000123</code>) or
+          scan the QR code on the receipt.
         </p>
         <form
           className="mx-auto mt-6 flex max-w-xl overflow-hidden rounded-full border border-border bg-card shadow-[var(--shadow-card)]"
-          onSubmit={verify}
+          onSubmit={(e) => void verify(e)}
         >
           <input
             value={ref}
             onChange={(e) => setRef(e.target.value)}
             type="text"
-            placeholder="Enter receipt reference"
+            spellCheck={false}
+            placeholder="Enter receipt number"
             className="flex-1 bg-transparent px-5 py-3 text-sm outline-none placeholder:text-muted-foreground"
           />
           <button
             type="submit"
-            className="bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-95"
+            disabled={busy}
+            className="bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-70"
           >
-            Verify
+            {busy ? "Checking…" : "Verify"}
           </button>
         </form>
 
-        {result?.status === "found" && (
-          <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-left">
-            <div className="flex items-center gap-2 text-emerald-700">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+        {result?.valid === true && (
+          <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-success/30 bg-success/10 p-5 text-left">
+            <div className="flex items-center gap-2 text-success">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-success text-xs font-bold text-success-foreground">
                 ✓
               </span>
               <span className="font-bold">Genuine receipt</span>
-              <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                {result.payment.status}
-              </span>
+              <StatusBadge status="valid" className="ml-auto" />
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
               {[
-                ["Reference", result.payment.rrr],
-                ["Category", result.payment.category],
-                ["Amount", `₦${result.payment.amount.toLocaleString()}`],
-                ["Channel", result.payment.channel],
-                ["Date", result.payment.date],
+                ["Receipt", result.receiptNo ?? "—"],
+                ["Amount", `₦${Number(result.amount ?? 0).toLocaleString()}`],
+                ["Revenue head", (result.revenueType ?? "levy").replace(/_/g, " ")],
+                ["Channel", result.channel ?? "—"],
+                ["Issued", result.issuedAt ? new Date(result.issuedAt).toLocaleDateString() : "—"],
+                ...(result.period ? [["Period", result.period]] : []),
               ].map(([l, v]) => (
                 <div key={l} className="flex flex-col">
-                  <dt className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/70">
+                  <dt className="text-[10px] font-bold uppercase tracking-widest text-success/70">
                     {l}
                   </dt>
-                  <dd className="font-semibold text-ink">{v}</dd>
+                  <dd className="font-semibold capitalize text-ink">{v}</dd>
                 </div>
               ))}
             </dl>
           </div>
         )}
-        {result?.status === "notfound" && (
-          <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-5 text-left text-sm text-amber-800">
+        {result?.voided === true && (
+          <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-warning/40 bg-warning/12 p-5 text-left text-sm text-warning-foreground">
+            <span className="font-bold">Receipt cancelled.</span> {result.receiptNo} was issued but
+            the payment behind it was reversed, so it does not prove payment.
+          </div>
+        )}
+        {result && result.valid === false && result.voided !== true && (
+          <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-destructive/30 bg-destructive/10 p-5 text-left text-sm text-destructive">
             <span className="font-bold">No match found</span> for{" "}
-            <span className="font-mono">{result.ref}</span>. Check the reference and try again, or
-            contact the revenue office.
+            <span className="font-mono">{ref.trim()}</span>. Check the number and try again, or scan
+            the QR code on the receipt.
           </div>
         )}
       </div>
@@ -878,24 +880,24 @@ function Testimonials() {
   );
 }
 
-const notices = [
+const notices: { tag: string; tone: StatusTone; date: string; title: string; body: string }[] = [
   {
     tag: "Urgent",
-    tagColor: "bg-red-100 text-red-700",
+    tone: "danger",
     date: "2026 Assessment Year",
     title: "2026 Tenement, Business & Sanitation Levy now open",
     body: "All property owners, businesses and transport operators across Kwali's 10 wards are required to complete their 2026 assessment. Register or sign in to generate your bill and pay online.",
   },
   {
     tag: "Deadline",
-    tagColor: "bg-amber-100 text-amber-700",
+    tone: "warning",
     date: "Dec 31, 2026",
     title: "10% surcharge after the deadline",
     body: "Payments received after December 31, 2026 will attract a 10% late-payment surcharge on the outstanding amount. Pay early to remain compliant.",
   },
   {
     tag: "New",
-    tagColor: "bg-emerald-100 text-emerald-700",
+    tone: "info",
     date: "Now live",
     title: "GPS property mapping rolled out across all wards",
     body: "Every property registered on KURCMS is now geo-tagged. Ward officers validate your assessment on the map, and enforcement uses GPS for accurate routing.",
@@ -920,9 +922,7 @@ function Notices() {
               className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)]"
             >
               <div className="flex items-center justify-between">
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${n.tagColor}`}>
-                  {n.tag}
-                </span>
+                <StatusBadge tone={n.tone}>{n.tag}</StatusBadge>
                 <span className="text-xs text-muted-foreground">{n.date}</span>
               </div>
               <h3 className="mt-4 text-base font-bold leading-snug text-ink">{n.title}</h3>

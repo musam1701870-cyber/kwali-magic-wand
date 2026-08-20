@@ -11,6 +11,13 @@ const DEMO_USERS = [
     role: "admin" as const,
   },
   {
+    email: "chairman@kwali.demo",
+    full_name: "Hon. Abdullahi Danladi",
+    phone: "08030000000",
+    ward: "Kwali",
+    role: "chairman" as const,
+  },
+  {
     email: "officer@kwali.demo",
     full_name: "Tunde Okafor",
     phone: "08030000002",
@@ -72,7 +79,7 @@ export const Route = createFileRoute("/api/public/seed-demo")({
 async function handle() {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const created: Array<{ email: string; role: string; password: string; status: string }> = [];
+    const created: Array<{ email: string; role: string; password: string; status: string; note?: string }> = [];
 
     // Page through existing users
     const existingByEmail = new Map<string, string>();
@@ -86,72 +93,100 @@ async function handle() {
     }
 
     for (const u of DEMO_USERS) {
-      let userId = existingByEmail.get(u.email);
-      let status = "exists";
-      if (!userId) {
-        const { data, error } = await supabaseAdmin.auth.admin.createUser({
-          email: u.email,
-          password: DEMO_PASSWORD,
-          email_confirm: true,
-          user_metadata: { full_name: u.full_name, phone: u.phone, ward: u.ward },
-        });
-        if (error || !data.user) throw error ?? new Error("createUser returned no user");
-        userId = data.user.id;
-        status = "created";
-      } else {
-        // Reset password so the printed credentials always work.
-        await supabaseAdmin.auth.admin.updateUserById(userId, {
-          password: DEMO_PASSWORD,
-          email_confirm: true,
-        });
-      }
+      // Each account is seeded independently: one account failing (e.g. the
+      // chairman role before its enum migration is applied) must not abort the
+      // rest. Failures are recorded per-account in the response instead.
+      try {
+        let userId = existingByEmail.get(u.email);
+        let status = "exists";
+        const notes: string[] = [];
 
-      // Ensure profile row (trigger creates it on insert; safety upsert for pre-existing users).
-      await supabaseAdmin.from("profiles").upsert({
-        id: userId,
-        full_name: u.full_name,
-        phone: u.phone,
-        ward: u.ward,
-      });
-
-      // Ensure correct role. The new-user trigger gives every user 'taxpayer';
-      // add admin/officer for the non-taxpayer demos.
-      if (u.role !== "taxpayer") {
-        const { data: existingRoles } = await supabaseAdmin
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId);
-        const has = (existingRoles ?? []).some((r) => r.role === u.role);
-        if (!has) {
-          await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: u.role });
-        }
-      }
-
-      // Seed businesses for the taxpayer demo account only.
-      if (u.role === "taxpayer") {
-        const { count } = await supabaseAdmin
-          .from("businesses")
-          .select("id", { count: "exact", head: true })
-          .eq("owner_id", userId);
-        if (!count) {
-          const rows = SAMPLE_BUSINESSES.map((b, i) => ({
-            owner_id: userId!,
-            ref: `KWL-BIZ-2026-${String(1000 + i).padStart(4, "0")}`,
-            business_name: b.business_name,
-            category: b.category,
-            ward: b.ward,
-            annual_rate: b.annual_rate,
-            status: b.status,
-            obligations: b.obligations,
-            owner_name: u.full_name,
-            phone: u.phone,
+        if (!userId) {
+          const { data, error } = await supabaseAdmin.auth.admin.createUser({
             email: u.email,
-          }));
-          await supabaseAdmin.from("businesses").insert(rows);
+            password: DEMO_PASSWORD,
+            email_confirm: true,
+            user_metadata: { full_name: u.full_name, phone: u.phone, ward: u.ward },
+          });
+          if (error || !data.user) throw error ?? new Error("createUser returned no user");
+          userId = data.user.id;
+          status = "created";
+        } else {
+          // Reset password so the printed credentials always work.
+          await supabaseAdmin.auth.admin.updateUserById(userId, {
+            password: DEMO_PASSWORD,
+            email_confirm: true,
+          });
         }
-      }
 
-      created.push({ email: u.email, role: u.role, password: DEMO_PASSWORD, status });
+        // Ensure profile row (trigger creates it on insert; safety upsert for pre-existing users).
+        const { error: profileErr } = await supabaseAdmin.from("profiles").upsert({
+          id: userId,
+          full_name: u.full_name,
+          phone: u.phone,
+          ward: u.ward,
+        });
+        if (profileErr) notes.push(`profile: ${profileErr.message}`);
+
+        // Ensure correct role. The new-user trigger gives every user 'taxpayer';
+        // add admin/officer/chairman/marshal for the non-taxpayer demos.
+        if (u.role !== "taxpayer") {
+          const { data: existingRoles } = await supabaseAdmin
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", userId);
+          const has = (existingRoles ?? []).some((r) => r.role === u.role);
+          if (!has) {
+            const { error: roleErr } = await supabaseAdmin
+              .from("user_roles")
+              .insert({ user_id: userId, role: u.role });
+            // A missing enum value (chairman before migration 000006) lands here.
+            // Record it and keep going — the account still exists and can log in.
+            if (roleErr) notes.push(`role '${u.role}' not assigned: ${roleErr.message}`);
+          }
+        }
+
+        // Seed businesses for the taxpayer demo account only.
+        if (u.role === "taxpayer") {
+          const { count } = await supabaseAdmin
+            .from("businesses")
+            .select("id", { count: "exact", head: true })
+            .eq("owner_id", userId);
+          if (!count) {
+            const rows = SAMPLE_BUSINESSES.map((b, i) => ({
+              owner_id: userId!,
+              ref: `KWL-BIZ-2026-${String(1000 + i).padStart(4, "0")}`,
+              business_name: b.business_name,
+              category: b.category,
+              ward: b.ward,
+              annual_rate: b.annual_rate,
+              status: b.status,
+              obligations: b.obligations,
+              owner_name: u.full_name,
+              phone: u.phone,
+              email: u.email,
+            }));
+            const { error: bizErr } = await supabaseAdmin.from("businesses").insert(rows);
+            if (bizErr) notes.push(`businesses: ${bizErr.message}`);
+          }
+        }
+
+        created.push({
+          email: u.email,
+          role: u.role,
+          password: DEMO_PASSWORD,
+          status: notes.length ? `${status} (with warnings)` : status,
+          ...(notes.length ? { note: notes.join("; ") } : {}),
+        });
+      } catch (userErr) {
+        created.push({
+          email: u.email,
+          role: u.role,
+          password: DEMO_PASSWORD,
+          status: "failed",
+          note: userErr instanceof Error ? userErr.message : "unknown error",
+        });
+      }
     }
 
     return new Response(JSON.stringify({ ok: true, accounts: created }, null, 2), {

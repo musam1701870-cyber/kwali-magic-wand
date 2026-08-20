@@ -20,8 +20,8 @@ const stageColor: Record<string, string> = {
   Enforcement: "bg-destructive/10 text-destructive",
 };
 
-function noticePDF(d: DemandNotice) {
-  exportReceiptPDF({
+async function noticePDF(d: DemandNotice) {
+  await exportReceiptPDF({
     filename: `demand-notice-${d.ref}`,
     receiptNo: d.ref,
     payerName: d.taxpayer,

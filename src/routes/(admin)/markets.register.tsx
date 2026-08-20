@@ -651,7 +651,7 @@ function RegisterTraderPage() {
             </button>
             <button
               onClick={() =>
-                exportIdCardPDF({
+                void exportIdCardPDF({
                   filename: `market-id-${traderId}`,
                   idNo: traderId,
                   name: form.name,

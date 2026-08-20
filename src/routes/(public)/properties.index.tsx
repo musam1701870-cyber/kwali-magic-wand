@@ -16,7 +16,7 @@ function PropertiesIndex() {
   return (
     <DashboardShell
       title="Properties"
-      subtitle="All your tenement-rated buildings and businesses."
+      subtitle="Rated properties and tenement buildings — their annual rates and payment status"
       actions={
         <Link
           to="/properties/register"

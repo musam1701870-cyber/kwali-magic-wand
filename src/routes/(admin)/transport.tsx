@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { DashboardShell } from "@/shared/components/layout/DashboardShell";
 import { StatusBadge } from "@/shared/components/ui/status-badge";
 import { TaxpayerIdCard } from "@/shared/components/ui/TaxpayerIdCard";
-import { LevyEducation } from "@/shared/components/ui/LevyEducation";
+import { SectionTabs } from "@/shared/components/ui/SectionTabs";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { recordPayment } from "@/shared/lib/revenue";
@@ -47,12 +47,15 @@ type Vehicle = {
   qr_token: string | null;
   vehicle_type: string;
   plate_number: string | null;
+  chassis_number: string | null;
+  engine_number: string | null;
   make: string | null;
   model: string | null;
   color: string | null;
   year: number | null;
   operator_name: string | null;
   operator_phone: string | null;
+  operator_nin: string | null;
   ward: string | null;
   route: string | null;
   daily_ticket_price: number | null;
@@ -110,7 +113,7 @@ function TransportPage() {
         supabase
           .from("transport_vehicles")
           .select(
-            "id, ref, qr_token, vehicle_type, plate_number, make, model, color, year, operator_name, operator_phone, ward, route, daily_ticket_price, status, created_at",
+            "id, ref, qr_token, vehicle_type, plate_number, chassis_number, engine_number, make, model, color, year, operator_name, operator_phone, operator_nin, ward, route, daily_ticket_price, status, created_at",
           )
           .order("created_at", { ascending: false })
           .limit(300),
@@ -188,9 +191,19 @@ function TransportPage() {
     return vehicles.filter((v) => {
       if (typeFilter !== "all" && v.vehicle_type !== typeFilter) return false;
       if (!term) return true;
+      // Every registration field is searchable: plate, operator name/phone/NIN,
+      // public ref, chassis/engine numbers, make/model, route, ward — plus the
+      // exact QR token from a scanned sticker.
       return (
         (v.plate_number ?? "").toLowerCase().includes(term) ||
         (v.operator_name ?? "").toLowerCase().includes(term) ||
+        (v.operator_phone ?? "").toLowerCase().includes(term) ||
+        (v.operator_nin ?? "").toLowerCase().includes(term) ||
+        (v.chassis_number ?? "").toLowerCase().includes(term) ||
+        (v.engine_number ?? "").toLowerCase().includes(term) ||
+        (v.make ?? "").toLowerCase().includes(term) ||
+        (v.model ?? "").toLowerCase().includes(term) ||
+        (v.ward ?? "").toLowerCase().includes(term) ||
         v.ref.toLowerCase().includes(term) ||
         (v.route ?? "").toLowerCase().includes(term) ||
         v.qr_token === q.trim()
@@ -237,323 +250,416 @@ function TransportPage() {
 
   // ---- Render ---------------------------------------------------------------
 
-  return (
-    <DashboardShell title="Transport" subtitle="Vehicles, daily tickets and stream revenue">
-      <div className="mb-6">
-        <LevyEducation category="transport" />
-      </div>
-
-      {/* Financial strip */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Collected today"
-          value={fmtNaira(stats.todayAmount)}
-          hint={`${stats.todayCount} ticket${stats.todayCount === 1 ? "" : "s"} issued`}
-          icon={<Wallet className="h-5 w-5" />}
-          tone="success"
-        />
-        <StatCard
-          label="This month"
-          value={fmtNaira(stats.monthAmount)}
-          hint="Month to date"
-          icon={<TrendingUp className="h-5 w-5" />}
-          tone="primary"
-        />
-        <StatCard
-          label="All time"
-          value={fmtNaira(stats.allTimeAmount)}
-          hint={`${tickets.length} tickets on record`}
-          icon={<CalendarDays className="h-5 w-5" />}
-          tone="gold"
-        />
-        <StatCard
-          label="Compliant today"
-          value={`${stats.compliantToday} / ${stats.active}`}
-          hint={`${stats.nonCompliant} active vehicles without today's ticket`}
-          icon={<ShieldAlert className="h-5 w-5" />}
-          tone="danger"
-        />
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
-        {/* Register + tickets (main column) */}
-        <div className="space-y-6 xl:col-span-2">
-          {/* Filters */}
-          <div className="surface-card p-5">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative min-w-0 flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search plate, operator, ref, route — or scan a QR sticker…"
-                  className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-3 text-sm"
-                />
-              </div>
-              <div className="flex gap-1.5">
-                {["all", "tricycle", "motorcycle", "commercial-vehicle"].map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTypeFilter(t)}
-                    className={
-                      "rounded-lg px-3 py-2 text-xs font-semibold transition " +
-                      (typeFilter === t
-                        ? "bg-primary text-primary-foreground"
-                        : "border border-border bg-card text-foreground hover:bg-secondary")
-                    }
-                  >
-                    {t === "all" ? "All" : typeMeta(t).label.split(" (")[0]}
-                  </button>
-                ))}
-              </div>
-            </div>
+  const registerSection = (
+    <div className="space-y-4">
+      {/* Search + type filter */}
+      <div className="surface-card p-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search plate, operator, NIN, chassis, ref, route, ward — or scan a QR sticker…"
+              className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-3 text-sm"
+            />
           </div>
+          <div className="flex gap-1.5">
+            {["all", "tricycle", "motorcycle", "commercial-vehicle"].map((t) => {
+              const count =
+                t === "all"
+                  ? vehicles.length
+                  : vehicles.filter((v) => v.vehicle_type === t).length;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  className={
+                    "rounded-lg px-3 py-2 text-xs font-semibold transition " +
+                    (typeFilter === t
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-border bg-card text-foreground hover:bg-secondary")
+                  }
+                >
+                  {t === "all" ? "All" : typeMeta(t).label.split(" (")[0]} ({count})
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-          {/* Vehicle list */}
-          {loading ? (
-            <div className="surface-card flex items-center gap-2 p-6 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading vehicles…
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="surface-card p-10 text-center">
-              <Truck className="mx-auto h-8 w-8 text-muted-foreground/50" />
-              <p className="mt-2 text-sm font-semibold text-ink">No vehicles found</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {vehicles.length === 0
-                  ? "No transport vehicles are registered yet — marshals onboard them in the field."
-                  : "Try a different search or filter."}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filtered.map((v) => {
-                const paid = paidTodayIds.has(v.id);
-                const meta = typeMeta(v.vehicle_type);
-                const rate = Number(v.daily_ticket_price) || meta.rate;
-                const nDays = days[v.id] ?? 1;
-                const busy = buyingFor === v.id;
-                return (
-                  <div key={v.id} className="surface-card p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          {meta.icon}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-display text-base font-bold text-ink">
-                              {v.plate_number ?? "No plate"}
-                            </span>
-                            <StatusBadge status={v.status} />
-                          </div>
-                          <div className="font-mono text-xs text-muted-foreground">{v.ref}</div>
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {v.operator_name ?? "—"} · {meta.label}
-                            {v.route ? ` · ${v.route}` : ""}
-                            {v.ward ? ` · Ward ${v.ward}` : ""}
-                          </div>
-                          {(v.make || v.model || v.color) && (
-                            <div className="mt-0.5 text-[11px] text-muted-foreground/80">
-                              {[v.color, v.make, v.model, v.year].filter(Boolean).join(" ")}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      {v.status === "Active" &&
-                        (paid ? (
-                          <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> TICKET ACTIVE
-                          </span>
-                        ) : (
-                          <StatusBadge tone="danger">NO TICKET TODAY</StatusBadge>
-                        ))}
+      {/* Vehicle list */}
+      {loading ? (
+        <div className="surface-card flex items-center gap-2 p-6 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading vehicles…
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="surface-card p-10 text-center">
+          <Truck className="mx-auto h-8 w-8 text-muted-foreground/50" />
+          <p className="mt-2 text-sm font-semibold text-ink">No vehicles found</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {vehicles.length === 0
+              ? "No transport vehicles are registered yet — marshals onboard them in the field."
+              : "Try a different search or filter."}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((v) => {
+            const paid = paidTodayIds.has(v.id);
+            const meta = typeMeta(v.vehicle_type);
+            const rate = Number(v.daily_ticket_price) || meta.rate;
+            const nDays = days[v.id] ?? 1;
+            const busy = buyingFor === v.id;
+            return (
+              <div key={v.id} className="surface-card p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      {meta.icon}
                     </div>
-
-                    {v.status === "Active" && !paid && (
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="text-xs text-muted-foreground">Daily rate</div>
-                            <div className="font-display text-lg font-bold text-ink">
-                              {fmtNaira(rate)}
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-xs text-muted-foreground">Days</label>
-                            <input
-                              type="number"
-                              min={1}
-                              max={30}
-                              value={nDays}
-                              onChange={(e) =>
-                                setDays((d) => ({
-                                  ...d,
-                                  [v.id]: Math.max(1, Math.min(30, Number(e.target.value) || 1)),
-                                }))
-                              }
-                              className="mt-0.5 w-16 rounded-md border border-border bg-background px-2 py-1 text-sm"
-                            />
-                          </div>
-                          <div className="text-sm">
-                            <span className="text-muted-foreground">Total: </span>
-                            <span className="font-bold text-primary">{fmtNaira(rate * nDays)}</span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => buyTicket(v)}
-                          disabled={busy}
-                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:opacity-95 disabled:opacity-60"
-                        >
-                          {busy ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Banknote className="h-4 w-4" />
-                          )}
-                          Pay & issue ticket
-                        </button>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-display text-base font-bold text-ink">
+                          {v.plate_number ?? "No plate"}
+                        </span>
+                        <StatusBadge status={v.status} />
                       </div>
-                    )}
-
-                    <div className="mt-3 flex items-center gap-3 text-[11px]">
-                      <button
-                        onClick={() => setCardFor(cardFor?.id === v.id ? null : v)}
-                        className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
-                      >
-                        <QrCode className="h-3 w-3" />
-                        {cardFor?.id === v.id ? "Hide ID card" : "View ID card"}
-                      </button>
-                      {v.operator_phone && (
-                        <span className="text-muted-foreground">{v.operator_phone}</span>
+                      <div className="font-mono text-xs text-muted-foreground">{v.ref}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {v.operator_name ?? "—"} · {meta.label}
+                        {v.route ? ` · ${v.route}` : ""}
+                        {v.ward ? ` · Ward ${v.ward}` : ""}
+                      </div>
+                      {(v.make || v.model || v.color) && (
+                        <div className="mt-0.5 text-[11px] text-muted-foreground/80">
+                          {[v.color, v.make, v.model, v.year].filter(Boolean).join(" ")}
+                        </div>
                       )}
                     </div>
+                  </div>
+                  {v.status === "Active" &&
+                    (paid ? (
+                      <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> TICKET ACTIVE
+                      </span>
+                    ) : (
+                      <StatusBadge tone="danger">NO TICKET TODAY</StatusBadge>
+                    ))}
+                </div>
 
-                    {cardFor?.id === v.id && (
-                      <div className="mt-4 border-t border-border pt-4">
-                        <TaxpayerIdCard
-                          refNo={v.ref}
-                          qrToken={v.qr_token}
-                          name={v.operator_name ?? v.plate_number ?? "Operator"}
-                          kind="Transport Operator"
-                          lines={[
-                            { label: "Plate", value: v.plate_number ?? "—" },
-                            { label: "Vehicle", value: meta.label },
-                            { label: "Route", value: v.route ?? "—" },
-                            { label: "Ward", value: v.ward ?? "—" },
-                          ]}
-                          issuedAt={v.created_at.split("T")[0]}
+                {v.status === "Active" && !paid && (
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Daily rate</div>
+                        <div className="font-display text-lg font-bold text-ink">
+                          {fmtNaira(rate)}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Days</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={30}
+                          value={nDays}
+                          onChange={(e) =>
+                            setDays((d) => ({
+                              ...d,
+                              [v.id]: Math.max(1, Math.min(30, Number(e.target.value) || 1)),
+                            }))
+                          }
+                          className="mt-0.5 w-16 rounded-md border border-border bg-background px-2 py-1 text-sm"
                         />
                       </div>
-                    )}
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Total: </span>
+                        <span className="font-bold text-primary">{fmtNaira(rate * nDays)}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => buyTicket(v)}
+                      disabled={busy}
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:opacity-95 disabled:opacity-60"
+                    >
+                      {busy ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Banknote className="h-4 w-4" />
+                      )}
+                      Pay & issue ticket
+                    </button>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                )}
+
+                <div className="mt-3 flex items-center gap-3 text-[11px]">
+                  <button
+                    onClick={() => setCardFor(cardFor?.id === v.id ? null : v)}
+                    className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                  >
+                    <QrCode className="h-3 w-3" />
+                    {cardFor?.id === v.id ? "Hide ID card" : "View ID card"}
+                  </button>
+                  {v.operator_phone && (
+                    <span className="text-muted-foreground">{v.operator_phone}</span>
+                  )}
+                  {v.operator_nin && (
+                    <span className="font-mono text-muted-foreground/70">NIN {v.operator_nin}</span>
+                  )}
+                </div>
+
+                {cardFor?.id === v.id && (
+                  <div className="mt-4 border-t border-border pt-4">
+                    <TaxpayerIdCard
+                      refNo={v.ref}
+                      qrToken={v.qr_token}
+                      name={v.operator_name ?? v.plate_number ?? "Operator"}
+                      kind="Transport Operator"
+                      lines={[
+                        { label: "Plate", value: v.plate_number ?? "—" },
+                        { label: "Vehicle", value: meta.label },
+                        { label: "Route", value: v.route ?? "—" },
+                        { label: "Ward", value: v.ward ?? "—" },
+                      ]}
+                      issuedAt={v.created_at.split("T")[0]}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+      )}
+    </div>
+  );
 
-        {/* Right rail: stream breakdown */}
-        <div className="space-y-6">
-          {/* Fleet composition */}
-          <div className="surface-card p-5">
-            <h3 className="font-display text-base font-bold text-ink">Fleet composition</h3>
-            <p className="text-xs text-muted-foreground">
-              {vehicles.length} registered · {stats.active} active · {stats.pending} pending
-            </p>
-            <div className="mt-4 space-y-3">
-              {byType.length === 0 && (
-                <p className="text-xs text-muted-foreground">No vehicles registered yet.</p>
-              )}
-              {byType.map(([type, m]) => {
-                const meta = typeMeta(type);
-                const pct = vehicles.length ? Math.round((m.count / vehicles.length) * 100) : 0;
-                return (
-                  <div key={type}>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1.5 font-semibold text-ink">
-                        {meta.icon} {meta.label}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {m.count} ({m.active} active)
-                      </span>
-                    </div>
-                    <div className="mt-1 h-1.5 rounded-full bg-secondary">
-                      <div
-                        className="h-1.5 rounded-full bg-primary transition-all"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
+  const complianceSection = (
+    <div className="surface-card">
+      <div className="border-b border-border px-5 py-4">
+        <h3 className="font-display text-base font-bold text-ink">Without today's ticket</h3>
+        <p className="text-xs text-muted-foreground">
+          Active vehicles with no confirmed daily ticket today — hand this list to marshals.
+        </p>
+      </div>
+      {loading ? (
+        <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+      ) : stats.nonCompliant === 0 ? (
+        <div className="flex flex-col items-center gap-2 p-10 text-center">
+          <CheckCircle2 className="h-8 w-8 text-success" />
+          <p className="text-sm font-semibold text-ink">Full compliance today</p>
+          <p className="text-xs text-muted-foreground">Every active vehicle holds a ticket.</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {vehicles
+            .filter((v) => v.status === "Active" && !paidTodayIds.has(v.id))
+            .map((v) => (
+              <div key={v.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-ink">
+                    {v.plate_number ?? "No plate"} · {v.operator_name ?? "—"}
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <div className="text-xs text-muted-foreground">
+                    {typeMeta(v.vehicle_type).label}
+                    {v.route ? ` · ${v.route}` : ""}
+                    {v.ward ? ` · Ward ${v.ward}` : ""}
+                    {v.operator_phone ? ` · ${v.operator_phone}` : ""}
+                  </div>
+                </div>
+                <StatusBadge tone="danger">Unpaid</StatusBadge>
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+  );
 
-          {/* Revenue by ward */}
-          <div className="surface-card p-5">
-            <h3 className="flex items-center gap-1.5 font-display text-base font-bold text-ink">
-              <MapPin className="h-4 w-4 text-primary" /> Ticket revenue by ward
-            </h3>
-            <div className="mt-4 space-y-2.5">
-              {byWard.length === 0 && (
-                <p className="text-xs text-muted-foreground">No tickets recorded yet.</p>
-              )}
-              {byWard.map(([ward, amount]) => {
-                const max = byWard[0]?.[1] || 1;
-                return (
-                  <div key={ward}>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-ink">{ward}</span>
-                      <span className="font-semibold text-primary">{fmtNaira(amount)}</span>
-                    </div>
-                    <div className="mt-1 h-1.5 rounded-full bg-secondary">
-                      <div
-                        className="h-1.5 rounded-full bg-gold transition-all"
-                        style={{ width: `${Math.max(4, Math.round((amount / max) * 100))}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Recent tickets */}
-          <div className="surface-card p-5">
-            <h3 className="flex items-center gap-1.5 font-display text-base font-bold text-ink">
-              <Receipt className="h-4 w-4 text-primary" /> Recent tickets
-            </h3>
-            <div className="mt-3 space-y-2">
-              {tickets.slice(0, 8).map((t) => (
-                <div
-                  key={t.id}
-                  className="flex items-center justify-between rounded-lg border border-border px-3 py-2"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate font-mono text-[11px] text-ink">{t.ref}</div>
-                    <div className="text-[10px] text-muted-foreground">
-                      {t.created_at.split("T")[0]} · {t.ward ?? "—"} · {t.channel}
-                    </div>
-                  </div>
-                  <span className="shrink-0 text-xs font-bold text-primary">
-                    {fmtNaira(Number(t.amount) || 0)}
+  const insightsSection = (
+    <div className="grid gap-6 lg:grid-cols-2">
+      {/* Fleet composition */}
+      <div className="surface-card p-5">
+        <h3 className="font-display text-base font-bold text-ink">Fleet composition</h3>
+        <p className="text-xs text-muted-foreground">
+          {vehicles.length} registered · {stats.active} active · {stats.pending} pending approval
+        </p>
+        <div className="mt-4 space-y-3">
+          {byType.length === 0 && (
+            <p className="text-xs text-muted-foreground">No vehicles registered yet.</p>
+          )}
+          {byType.map(([type, m]) => {
+            const meta = typeMeta(type);
+            const pct = vehicles.length ? Math.round((m.count / vehicles.length) * 100) : 0;
+            return (
+              <div key={type}>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5 font-semibold text-ink">
+                    {meta.icon} {meta.label}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {m.count} ({m.active} active)
                   </span>
                 </div>
-              ))}
-              {tickets.length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Tickets issued today will appear here.
-                </p>
-              )}
-            </div>
-            <Link
-              to="/payments"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-            >
-              <ArrowLeft className="h-3 w-3 rotate-180" /> Full payments ledger
-            </Link>
-          </div>
+                <div className="mt-1 h-1.5 rounded-full bg-secondary">
+                  <div
+                    className="h-1.5 rounded-full bg-primary transition-all"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Revenue by ward */}
+      <div className="surface-card p-5">
+        <h3 className="flex items-center gap-1.5 font-display text-base font-bold text-ink">
+          <MapPin className="h-4 w-4 text-primary" /> Ticket revenue by ward
+        </h3>
+        <div className="mt-4 space-y-2.5">
+          {byWard.length === 0 && (
+            <p className="text-xs text-muted-foreground">No tickets recorded yet.</p>
+          )}
+          {byWard.map(([ward, amount]) => {
+            const max = byWard[0]?.[1] || 1;
+            return (
+              <div key={ward}>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-ink">{ward}</span>
+                  <span className="font-semibold text-primary">{fmtNaira(amount)}</span>
+                </div>
+                <div className="mt-1 h-1.5 rounded-full bg-secondary">
+                  <div
+                    className="h-1.5 rounded-full bg-gold transition-all"
+                    style={{ width: `${Math.max(4, Math.round((amount / max) * 100))}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent tickets */}
+      <div className="surface-card p-5 lg:col-span-2">
+        <h3 className="flex items-center gap-1.5 font-display text-base font-bold text-ink">
+          <Receipt className="h-4 w-4 text-primary" /> Recent tickets
+        </h3>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {tickets.slice(0, 8).map((t) => (
+            <div
+              key={t.id}
+              className="flex items-center justify-between rounded-lg border border-border px-3 py-2"
+            >
+              <div className="min-w-0">
+                <div className="truncate font-mono text-[11px] text-ink">{t.ref}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {t.created_at.split("T")[0]} · {t.ward ?? "—"} · {t.channel}
+                </div>
+              </div>
+              <span className="shrink-0 text-xs font-bold text-primary">
+                {fmtNaira(Number(t.amount) || 0)}
+              </span>
+            </div>
+          ))}
+        </div>
+        {tickets.length === 0 && (
+          <p className="mt-2 text-xs text-muted-foreground">Tickets issued will appear here.</p>
+        )}
+        <Link
+          to="/payments"
+          className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+        >
+          Full payments ledger →
+        </Link>
+      </div>
+    </div>
+  );
+
+  return (
+    <DashboardShell title="Transport" subtitle="Vehicles, daily tickets and stream revenue">
+      <SectionTabs
+        sections={[
+          {
+            id: "overview",
+            label: "Overview",
+            hint: "The day's position at a glance.",
+            content: (
+              <div className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <StatCard
+                    label="Collected today"
+                    value={fmtNaira(stats.todayAmount)}
+                    hint={`${stats.todayCount} ticket${stats.todayCount === 1 ? "" : "s"} issued`}
+                    icon={<Wallet className="h-5 w-5" />}
+                    tone="success"
+                  />
+                  <StatCard
+                    label="Compliant today"
+                    value={`${stats.compliantToday} / ${stats.active}`}
+                    hint={`${stats.nonCompliant} active without a ticket`}
+                    icon={<ShieldAlert className="h-5 w-5" />}
+                    tone={stats.nonCompliant > 0 ? "danger" : "success"}
+                  />
+                  <StatCard
+                    label="Registered fleet"
+                    value={String(vehicles.length)}
+                    hint={`${stats.active} active · ${stats.pending} pending approval`}
+                    icon={<Truck className="h-5 w-5" />}
+                    tone="primary"
+                  />
+                </div>
+                <div className="surface-card p-5">
+                  <h3 className="font-display text-base font-bold text-ink">Stream position</h3>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl bg-secondary/50 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Month to date
+                      </div>
+                      <div className="mt-1 font-display text-xl font-bold text-ink">
+                        {fmtNaira(stats.monthAmount)}
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-secondary/50 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        All time
+                      </div>
+                      <div className="mt-1 font-display text-xl font-bold text-ink">
+                        {fmtNaira(stats.allTimeAmount)}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {tickets.length} tickets on record
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ),
+          },
+          {
+            id: "register",
+            label: "Vehicle Register",
+            hint: "Search any registration field — plate, operator, NIN, chassis, engine, route or ward.",
+            badge: vehicles.length || undefined,
+            content: registerSection,
+          },
+          {
+            id: "compliance",
+            label: "Compliance",
+            hint: "Vehicles operating today without a paid ticket.",
+            badge: stats.nonCompliant || undefined,
+            content: complianceSection,
+          },
+          {
+            id: "insights",
+            label: "Insights",
+            hint: "Fleet composition, ward revenue and the latest tickets.",
+            content: insightsSection,
+          },
+        ]}
+      />
     </DashboardShell>
   );
 }

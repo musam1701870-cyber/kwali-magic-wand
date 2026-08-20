@@ -47,10 +47,10 @@ const navGroups: {
         label: "Executive Dashboard",
         icon: <LayoutDashboard className="h-4 w-4" />,
       },
-      { to: "/revenue-center", label: "Revenue Center", icon: <Banknote className="h-4 w-4" /> },
+      { to: "/revenue-center", label: "Revenue Records", icon: <Banknote className="h-4 w-4" /> },
       {
         to: "/intelligence",
-        label: "Revenue Intelligence",
+        label: "Revenue Watch",
         icon: <TrendingUp className="h-4 w-4" />,
       },
     ],
@@ -193,7 +193,7 @@ const chairmanGroups: typeof navGroups = [
       },
       {
         to: "/executive/intelligence",
-        label: "Revenue Intelligence",
+        label: "Revenue Watch",
         icon: <TrendingUp className="h-4 w-4" />,
       },
       { to: "/executive/wards", label: "Ward Performance", icon: <Map className="h-4 w-4" /> },

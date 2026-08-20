@@ -1,704 +1,449 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, type ReactNode } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { DashboardShell } from "@/shared/components/layout/DashboardShell";
-import { businesses as seedBusinesses, businessCategories, wards } from "@/shared/lib/kwali-mock";
-import { LevyEducation } from "@/shared/components/ui/LevyEducation";
+import { StatusBadge } from "@/shared/components/ui/status-badge";
+import { SectionTabs } from "@/shared/components/ui/SectionTabs";
+import { supabase } from "@/integrations/supabase/client";
+import { fmtNaira } from "@/shared/lib/utils";
+import {
+  Search,
+  Loader2,
+  Building2,
+  Wallet,
+  Clock,
+  AlertTriangle,
+  Download,
+  MapPin,
+} from "lucide-react";
 
 export const Route = createFileRoute("/(admin)/businesses")({
-  head: () => ({ meta: [{ title: "Business Registry — Kwali Smart Revenue Platform" }] }),
+  head: () => ({ meta: [{ title: "Business Registry — Kwali Revenue Portal" }] }),
   component: BusinessesPage,
 });
 
-type RegisteredBusiness = {
+// Business registry on real data, in plain council terms:
+//   billed  = the annual permit amount assessed on a business;
+//   received= confirmed payments against that business;
+//   owing   = billed minus received (the arrears officers chase).
+
+type Biz = {
   id: string;
   ref: string;
-  name: string;
-  owner?: string;
-  category: string;
-  ward: string;
-  address?: string;
-  town?: string;
-  landmark?: string;
-  lat?: string;
-  lng?: string;
-  phone?: string;
-  email?: string;
-  tin?: string;
-  staff?: number;
-  status: "Active" | "Expired" | "Suspended";
-  renewal: string;
-  levy: number;
-  registeredAt?: string;
+  business_name: string;
+  trading_name: string | null;
+  taxpayer_type: string | null;
+  category: string | null;
+  industry: string | null;
+  rc_number: string | null;
+  tin: string | null;
+  phone: string | null;
+  email: string | null;
+  owner_name: string | null;
+  nin: string | null;
+  ward: string | null;
+  street: string | null;
+  building: string | null;
+  district: string | null;
+  annual_rate: number | null;
+  status: string;
+  created_at: string;
 };
 
-const initial: RegisteredBusiness[] = seedBusinesses.map((b) => ({
-  ...b,
-  address: `${b.ward} Main Road`,
-  town: b.ward,
-  phone: "0803-000-0000",
-}));
+type BizPayment = {
+  source_id: string | null;
+  amount: number;
+  channel: string;
+  created_at: string;
+};
 
 function BusinessesPage() {
-  const [open, setOpen] = useState(false);
-  const [list, setList] = useState<RegisteredBusiness[]>(initial);
-  const [filter, setFilter] = useState("");
-  const [wardFilter, setWardFilter] = useState<string>("All");
-  const [categoryFilter, setCategoryFilter] = useState<string>("All");
-  const [selected, setSelected] = useState<RegisteredBusiness | null>(null);
+  const [list, setList] = useState<Biz[]>([]);
+  const [payments, setPayments] = useState<BizPayment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [wardFilter, setWardFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selected, setSelected] = useState<Biz | null>(null);
 
-  const filtered = useMemo(
-    () =>
-      list.filter((b) => {
-        const q = filter.toLowerCase();
-        const matchesText =
-          !q ||
-          b.name.toLowerCase().includes(q) ||
-          b.category.toLowerCase().includes(q) ||
-          b.ref.toLowerCase().includes(q) ||
-          (b.address?.toLowerCase().includes(q) ?? false) ||
-          (b.owner?.toLowerCase().includes(q) ?? false);
-        const matchesWard = wardFilter === "All" || b.ward === wardFilter;
-        const matchesCat = categoryFilter === "All" || b.category === categoryFilter;
-        return matchesText && matchesWard && matchesCat;
-      }),
-    [list, filter, wardFilter, categoryFilter],
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [bizRes, payRes] = await Promise.all([
+        supabase.from("businesses").select("*").order("created_at", { ascending: false }).limit(500),
+        supabase
+          .from("payments")
+          .select("source_id, amount, channel, created_at")
+          .eq("source_table", "businesses")
+          .eq("status", "confirmed")
+          .order("created_at", { ascending: false })
+          .limit(2000),
+      ]);
+      if (bizRes.error) throw new Error(bizRes.error.message);
+      if (payRes.error) throw new Error(payRes.error.message);
+      setList((bizRes.data ?? []) as Biz[]);
+      setPayments((payRes.data ?? []) as BizPayment[]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not load businesses");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  // Confirmed money received per business.
+  const receivedBy = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of payments) {
+      if (!p.source_id) continue;
+      map.set(p.source_id, (map.get(p.source_id) ?? 0) + (Number(p.amount) || 0));
+    }
+    return map;
+  }, [payments]);
+
+  const wards = useMemo(
+    () => [...new Set(list.map((b) => b.ward).filter(Boolean))].sort() as string[],
+    [list],
   );
 
-  const wardRevenue = useMemo(() => {
-    const map = new Map<string, { count: number; levy: number }>();
-    for (const w of wards) map.set(w, { count: 0, levy: 0 });
-    for (const b of filtered) {
-      const r = map.get(b.ward) ?? { count: 0, levy: 0 };
-      r.count += 1;
-      r.levy += b.levy;
-      map.set(b.ward, r);
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    return list.filter((b) => {
+      if (wardFilter !== "all" && b.ward !== wardFilter) return false;
+      if (statusFilter !== "all" && b.status !== statusFilter) return false;
+      if (!term) return true;
+      return (
+        b.business_name.toLowerCase().includes(term) ||
+        (b.trading_name ?? "").toLowerCase().includes(term) ||
+        (b.owner_name ?? "").toLowerCase().includes(term) ||
+        (b.rc_number ?? "").toLowerCase().includes(term) ||
+        (b.tin ?? "").toLowerCase().includes(term) ||
+        (b.phone ?? "").toLowerCase().includes(term) ||
+        (b.nin ?? "").toLowerCase().includes(term) ||
+        (b.category ?? "").toLowerCase().includes(term) ||
+        (b.street ?? "").toLowerCase().includes(term) ||
+        b.ref.toLowerCase().includes(term)
+      );
+    });
+  }, [list, q, wardFilter, statusFilter]);
+
+  const stats = useMemo(() => {
+    const billed = list.reduce((s, b) => s + (Number(b.annual_rate) || 0), 0);
+    const received = payments.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    const owing = list.filter((b) => (receivedBy.get(b.id) ?? 0) < (Number(b.annual_rate) || 0));
+    return {
+      total: list.length,
+      active: list.filter((b) => b.status === "Active").length,
+      pending: list.filter((b) => b.status === "Pending").length,
+      suspended: list.filter((b) => b.status === "Suspended" || b.status === "Expired").length,
+      billed,
+      received,
+      owingAmount: Math.max(0, billed - received),
+      owingCount: owing.length,
+    };
+  }, [list, payments, receivedBy]);
+
+  const byWard = useMemo(() => {
+    const map = new Map<string, { count: number; billed: number; received: number }>();
+    for (const b of list) {
+      const w = b.ward || "Unassigned";
+      const m = map.get(w) ?? { count: 0, billed: 0, received: 0 };
+      m.count += 1;
+      m.billed += Number(b.annual_rate) || 0;
+      m.received += receivedBy.get(b.id) ?? 0;
+      map.set(w, m);
     }
-    return Array.from(map.entries()).map(([ward, v]) => ({ ward, ...v }));
-  }, [filtered]);
+    return [...map.entries()].sort((a, b) => b[1].billed - a[1].billed);
+  }, [list, receivedBy]);
 
-  const totalLevy = filtered.reduce((s, b) => s + b.levy, 0);
-
-  function handleSave(newBiz: RegisteredBusiness) {
-    setList((prev) => [newBiz, ...prev]);
-    setOpen(false);
+  function exportCsv() {
+    if (!filtered.length) return toast.error("Nothing to export");
+    const header = "Ref,Business,Owner,Categoory,RC,TIN,Ward,Phone,Status,Billed,Received,Owing";
+    const lines = filtered.map((b) => {
+      const rec = receivedBy.get(b.id) ?? 0;
+      const billed = Number(b.annual_rate) || 0;
+      return [b.ref, `"${b.business_name}"`, `"${b.owner_name ?? ""}"`, `"${b.category ?? ""}"`, b.rc_number ?? "", b.tin ?? "", b.ward ?? "", b.phone ?? "", b.status, billed, rec, Math.max(0, billed - rec)].join(",");
+    });
+    const blob = new Blob([[header, ...lines].join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `kwali-businesses-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    toast.success("Register downloaded");
   }
 
-  function downloadPDF(rows: RegisteredBusiness[], title: string) {
-    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
-    const pageW = doc.internal.pageSize.getWidth();
-
-    doc.setFillColor(15, 76, 58);
-    doc.rect(0, 0, pageW, 70, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
-    doc.text("Kwali Smart Revenue Platform", 40, 30);
-    doc.setFontSize(11);
-    doc.text(title, 40, 50);
-    doc.setFontSize(9);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, pageW - 40, 30, { align: "right" });
-    doc.text(`Ward filter: ${wardFilter}   Category: ${categoryFilter}`, pageW - 40, 50, {
-      align: "right",
-    });
-
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    doc.text(`Total businesses: ${rows.length}`, 40, 95);
-    doc.text(
-      `Total annual obligation: NGN ${rows.reduce((s, b) => s + b.levy, 0).toLocaleString()}`,
-      40,
-      110,
-    );
-
-    autoTable(doc, {
-      startY: 130,
-      head: [
-        [
-          "Ref",
-          "Business",
-          "Owner",
-          "Category",
-          "Ward",
-          "Address",
-          "Phone",
-          "Renewal",
-          "Levy (NGN)",
-          "Status",
-        ],
-      ],
-      body: rows.map((b) => [
-        b.ref,
-        b.name,
-        b.owner ?? "—",
-        b.category,
-        b.ward,
-        [b.address, b.town, b.landmark].filter(Boolean).join(", ") || "—",
-        b.phone ?? "—",
-        b.renewal,
-        b.levy.toLocaleString(),
-        b.status,
-      ]),
-      styles: { fontSize: 8, cellPadding: 4 },
-      headStyles: { fillColor: [15, 76, 58], textColor: 255 },
-      alternateRowStyles: { fillColor: [245, 247, 245] },
-    });
-
-    const wardSummary = wards
-      .map((w) => {
-        const r = rows.filter((b) => b.ward === w);
-        return [w, String(r.length), r.reduce((s, b) => s + b.levy, 0).toLocaleString()];
-      })
-      .filter((r) => r[1] !== "0");
-
-    if (wardSummary.length) {
-      autoTable(doc, {
-        head: [["Ward", "Businesses", "Annual obligation (NGN)"]],
-        body: wardSummary,
-        styles: { fontSize: 9, cellPadding: 5 },
-        headStyles: { fillColor: [191, 149, 63], textColor: 255 },
-      });
-    }
-
-    doc.save(`KSRP-Business-Report-${new Date().toISOString().slice(0, 10)}.pdf`);
-  }
-
-  return (
-    <DashboardShell
-      title="Business Registry"
-      subtitle="Registered business premises and operators — their category, ward and annual levy status"
-      actions={
-        <div className="flex gap-2">
-          <button
-            onClick={() => downloadPDF(filtered, "Business Registry Report")}
-            className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-secondary"
-          >
-            ⬇ PDF report
-          </button>
-          <button
-            onClick={() => setOpen(true)}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-95"
-          >
-            + Register business
-          </button>
-        </div>
-      }
-    >
-      <div className="mb-6 grid gap-3 md:grid-cols-4">
-        <Stat t="In view" v={String(filtered.length)} color="text-primary" />
-        <Stat
-          t="Active"
-          v={String(filtered.filter((b) => b.status === "Active").length)}
-          color="text-primary"
-        />
-        <Stat
-          t="Expired / Suspended"
-          v={String(filtered.filter((b) => b.status !== "Active").length)}
-          color="text-destructive"
-        />
-        <Stat t="Annual obligation" v={"₦" + totalLevy.toLocaleString()} color="text-ink" />
-      </div>
-
-      <div className="mb-4 grid gap-3 lg:grid-cols-4">
+  const filterBar = (
+    <div className="surface-card flex flex-wrap items-center gap-3 p-4">
+      <div className="relative min-w-0 flex-1">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="Search name, owner, address, ref…"
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm lg:col-span-2"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search name, owner, RC/CAC, TIN, phone, NIN, category, street…"
+          className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm"
         />
-        <select
-          value={wardFilter}
-          onChange={(e) => setWardFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="All">All wards ({wards.length})</option>
-          {wards.map((w) => (
-            <option key={w} value={w}>
-              {w}
-            </option>
-          ))}
-        </select>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="All">All categories</option>
-          {businessCategories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
       </div>
+      <select value={wardFilter} onChange={(e) => setWardFilter(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
+        <option value="all">All wards</option>
+        {wards.map((w) => (
+          <option key={w} value={w}>{w}</option>
+        ))}
+      </select>
+      <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
+        <option value="all">All statuses</option>
+        <option value="Active">Active</option>
+        <option value="Pending">Pending</option>
+        <option value="Suspended">Suspended</option>
+        <option value="Expired">Expired</option>
+      </select>
+    </div>
+  );
 
-      <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="font-semibold text-ink">Revenue tracking by ward</div>
-          <div className="text-xs text-muted-foreground">Based on current filter</div>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {wardRevenue.map((r) => {
-            const max = Math.max(1, ...wardRevenue.map((x) => x.levy));
-            const pct = Math.round((r.levy / max) * 100);
-            return (
-              <button
-                key={r.ward}
-                onClick={() => setWardFilter(r.ward)}
-                className={`rounded-xl border p-3 text-left transition ${
-                  wardFilter === r.ward
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-background hover:bg-secondary"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="font-semibold text-ink">{r.ward}</div>
-                  <div className="text-xs text-muted-foreground">{r.count} biz</div>
-                </div>
-                <div className="mt-2 text-sm font-bold text-ink">₦{r.levy.toLocaleString()}</div>
-                <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-                </div>
-              </button>
-            );
-          })}
-        </div>
+  const registerSection = (
+    <div className="space-y-4">
+      {filterBar}
+      <div className="flex justify-end">
+        <button onClick={exportCsv} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold hover:bg-secondary">
+          <Download className="h-3.5 w-3.5" /> Export CSV
+        </button>
       </div>
-
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <div className="font-semibold text-ink">Registered businesses</div>
-          <div className="text-xs text-muted-foreground">
-            {filtered.length} of {list.length}
-          </div>
+      {loading ? (
+        <div className="surface-card flex items-center gap-2 p-6 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading businesses…
         </div>
-        <div className="overflow-x-auto">
+      ) : filtered.length === 0 ? (
+        <div className="surface-card p-10 text-center">
+          <Building2 className="mx-auto h-8 w-8 text-muted-foreground/50" />
+          <p className="mt-2 text-sm font-semibold text-ink">No businesses found</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {list.length === 0 ? "Businesses appear here once registered." : "Try a different search or filter."}
+          </p>
+        </div>
+      ) : (
+        <div className="surface-card overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-secondary/40 text-xs uppercase tracking-widest text-muted-foreground">
+            <thead className="border-b border-border bg-surface text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 text-left">Ref</th>
-                <th className="px-5 py-3 text-left">Business</th>
-                <th className="px-5 py-3 text-left">Category</th>
-                <th className="px-5 py-3 text-left">Ward / Address</th>
-                <th className="px-5 py-3 text-left">Renewal</th>
-                <th className="px-5 py-3 text-right">Annual levy</th>
-                <th className="px-5 py-3 text-left">Status</th>
-                <th className="px-5 py-3"></th>
+                <th className="px-4 py-3 text-left">Ref</th>
+                <th className="px-4 py-3 text-left">Business</th>
+                <th className="px-4 py-3 text-left">Category</th>
+                <th className="px-4 py-3 text-left">Ward</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-right">Billed</th>
+                <th className="px-4 py-3 text-right">Received</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((b) => (
-                <tr key={b.id}>
-                  <td className="px-5 py-4 font-mono text-xs text-ink">{b.ref}</td>
-                  <td className="px-5 py-4">
-                    <div className="font-semibold text-ink">{b.name}</div>
-                    {b.owner && <div className="text-xs text-muted-foreground">{b.owner}</div>}
-                  </td>
-                  <td className="px-5 py-4 text-muted-foreground">{b.category}</td>
-                  <td className="px-5 py-4">
-                    <div className="font-semibold text-ink">{b.ward}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {[b.address, b.town, b.landmark].filter(Boolean).join(", ") || "—"}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-muted-foreground">{b.renewal}</td>
-                  <td className="px-5 py-4 text-right font-semibold text-ink">
-                    ₦{b.levy.toLocaleString()}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={
-                        "rounded-full px-2.5 py-0.5 text-[11px] font-bold " +
-                        (b.status === "Active"
-                          ? "bg-primary/10 text-primary"
-                          : b.status === "Expired"
-                            ? "bg-gold/20 text-gold-foreground"
-                            : "bg-destructive/10 text-destructive")
-                      }
-                    >
-                      {b.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <button
-                      onClick={() => setSelected(b)}
-                      className="text-xs font-semibold text-primary hover:underline"
-                    >
-                      View / track
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-sm text-muted-foreground">
-                    No businesses match your filters.
-                  </td>
-                </tr>
-              )}
+              {filtered.map((b) => {
+                const billed = Number(b.annual_rate) || 0;
+                const received = receivedBy.get(b.id) ?? 0;
+                const owes = received < billed;
+                return (
+                  <tr key={b.id} className="hover:bg-secondary/30">
+                    <td className="px-4 py-3 font-mono text-xs text-ink">{b.ref}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-ink">{b.business_name}</div>
+                      {b.owner_name && <div className="text-xs text-muted-foreground">{b.owner_name}</div>}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{b.category ?? "—"}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{b.ward ?? "—"}</td>
+                    <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
+                    <td className="px-4 py-3 text-right text-sm text-ink">{fmtNaira(billed)}</td>
+                    <td className="px-4 py-3 text-right text-sm font-semibold">
+                      <span className={owes ? "text-destructive" : "text-success"}>{fmtNaira(received)}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => setSelected(b)} className="text-xs font-semibold text-primary hover:underline">
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
-      </div>
-
-      {open && <RegisterModal onClose={() => setOpen(false)} onSave={handleSave} />}
-      {selected && (
-        <DetailModal
-          biz={selected}
-          onClose={() => setSelected(null)}
-          onPdf={() => downloadPDF([selected], `Business Profile — ${selected.name}`)}
-        />
       )}
+    </div>
+  );
+
+  const owingSection = (
+    <div className="surface-card">
+      <div className="border-b border-border px-5 py-4">
+        <h3 className="font-display text-base font-bold text-ink">Unpaid business bills</h3>
+        <p className="text-xs text-muted-foreground">
+          Businesses whose confirmed payments are below their annual bill — the arrears list for officers.
+        </p>
+      </div>
+      {loading ? (
+        <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+      ) : stats.owingCount === 0 ? (
+        <div className="flex flex-col items-center gap-2 p-10 text-center">
+          <Wallet className="h-8 w-8 text-success" />
+          <p className="text-sm font-semibold text-ink">No arrears</p>
+          <p className="text-xs text-muted-foreground">Every billed business has paid in full.</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {list
+            .filter((b) => (receivedBy.get(b.id) ?? 0) < (Number(b.annual_rate) || 0))
+            .sort((a, b) => (Number(b.annual_rate) || 0) - (receivedBy.get(b.id) ?? 0) - ((Number(a.annual_rate) || 0) - (receivedBy.get(a.id) ?? 0)))
+            .map((b) => {
+              const owing = (Number(b.annual_rate) || 0) - (receivedBy.get(b.id) ?? 0);
+              return (
+                <div key={b.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-ink">{b.business_name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {b.ref} · {b.ward ?? "—"}{b.phone ? ` · ${b.phone}` : ""}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-sm font-bold text-destructive">{fmtNaira(owing)}</div>
+                    <div className="text-[10px] text-muted-foreground">owing</div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      )}
+    </div>
+  );
+
+  const wardSection = (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {byWard.length === 0 && (
+        <div className="surface-card p-10 text-center sm:col-span-3">
+          <MapPin className="mx-auto h-8 w-8 text-muted-foreground/50" />
+          <p className="mt-2 text-sm font-semibold text-ink">No ward data yet</p>
+        </div>
+      )}
+      {byWard.map(([ward, m]) => {
+        const pct = m.billed > 0 ? Math.round((m.received / m.billed) * 100) : 0;
+        return (
+          <div key={ward} className="surface-card p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-display text-base font-bold text-ink">{ward}</div>
+                <div className="text-xs text-muted-foreground">{m.count} businesses</div>
+              </div>
+              <span className={"rounded-full px-2 py-0.5 text-[11px] font-bold " + (pct >= 80 ? "bg-emerald-50 text-emerald-700" : pct >= 50 ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700")}>
+                {pct}% paid
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="rounded-lg bg-surface px-3 py-2">
+                <div className="text-[10px] text-muted-foreground">Billed</div>
+                <div className="text-sm font-bold text-ink">{fmtNaira(m.billed)}</div>
+              </div>
+              <div className="rounded-lg bg-surface px-3 py-2">
+                <div className="text-[10px] text-muted-foreground">Received</div>
+                <div className="text-sm font-bold text-primary">{fmtNaira(m.received)}</div>
+              </div>
+            </div>
+            <div className="mt-3 h-1.5 rounded-full bg-secondary">
+              <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, pct)}%` }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <DashboardShell title="Business Registry" subtitle="Registered businesses, their annual bills and what they have paid">
+      <SectionTabs
+        sections={[
+          {
+            id: "overview",
+            label: "Overview",
+            hint: "The business stream in plain terms — registered, billed, received, owing.",
+            content: (
+              <div className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Kpi label="Registered businesses" value={String(stats.total)} hint={`${stats.active} active · ${stats.pending} awaiting approval`} icon={<Building2 className="h-5 w-5" />} tone="primary" />
+                  <Kpi label="Bills raised this year" value={fmtNaira(stats.billed)} hint="Total annual permits assessed" icon={<Clock className="h-5 w-5" />} tone="gold" />
+                  <Kpi label="Money received" value={fmtNaira(stats.received)} hint="Confirmed payments from businesses" icon={<Wallet className="h-5 w-5" />} tone="success" />
+                </div>
+                <div className="surface-card flex items-center justify-between gap-4 p-5">
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-xl bg-red-50 p-2.5 text-red-600"><AlertTriangle className="h-5 w-5" /></span>
+                    <div>
+                      <div className="font-display text-lg font-bold text-ink">{fmtNaira(stats.owingAmount)} still to collect</div>
+                      <div className="text-xs text-muted-foreground">
+                        {stats.owingCount} businesses have not fully paid · {stats.suspended} suspended or expired
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ),
+          },
+          { id: "register", label: "Business Register", hint: "Search any field — RC/CAC, TIN, owner, phone, NIN, ward.", badge: list.length || undefined, content: registerSection },
+          { id: "owing", label: "Owing", hint: "Businesses with unpaid annual bills.", badge: stats.owingCount || undefined, content: owingSection },
+          { id: "wards", label: "Ward Summary", hint: "Billed vs received for each ward.", content: wardSection },
+        ]}
+      />
+
+      {selected && <BizDrawer biz={selected} received={receivedBy.get(selected.id) ?? 0} onClose={() => setSelected(null)} />}
     </DashboardShell>
   );
 }
 
-function RegisterModal({
-  onClose,
-  onSave,
-}: {
-  onClose: () => void;
-  onSave: (b: RegisteredBusiness) => void;
-}) {
-  const [form, setForm] = useState({
-    name: "",
-    owner: "",
-    category: "",
-    ward: wards[0],
-    phone: "",
-    email: "",
-    address: "",
-    town: "",
-    landmark: "",
-    lat: "",
-    lng: "",
-    levy: 10000,
-    tin: "",
-    staff: 1,
-  });
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
-    setForm((f) => ({ ...f, [k]: v }));
-
+function Kpi({ label, value, hint, icon, tone }: { label: string; value: string; hint?: string; icon: React.ReactNode; tone: "success" | "primary" | "gold" }) {
+  const bg = tone === "success" ? "bg-emerald-50 text-emerald-600" : tone === "gold" ? "bg-amber-50 text-amber-600" : "bg-primary/8 text-primary";
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4"
-      onClick={onClose}
-    >
-      <form
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={(e) => {
-          e.preventDefault();
-          const ref = `KWL-BIZ-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-          const renewal = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
-            .toISOString()
-            .slice(0, 10);
-          onSave({
-            id: ref,
-            ref,
-            status: "Active",
-            renewal,
-            registeredAt: new Date().toISOString(),
-            name: form.name,
-            owner: form.owner,
-            category: form.category,
-            ward: form.ward,
-            phone: form.phone,
-            email: form.email,
-            address: form.address,
-            town: form.town,
-            landmark: form.landmark,
-            lat: form.lat,
-            lng: form.lng,
-            tin: form.tin,
-            staff: Number(form.staff) || 0,
-            levy: Number(form.levy) || 0,
-          });
-        }}
-        className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-elegant)]"
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-display text-xl font-bold text-ink">Register a business</h3>
-            <p className="text-xs text-muted-foreground">
-              Captures full location & ownership details for tracking.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Legal education panel */}
-        <div className="mt-4">
-          <LevyEducation category="business" />
-        </div>
-
-        <Section title="Business details">
-          <Field label="Business name">
-            <input
-              className="input"
-              required
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-            />
-          </Field>
-          <Field label="Owner / proprietor">
-            <input
-              className="input"
-              required
-              value={form.owner}
-              onChange={(e) => set("owner", e.target.value)}
-            />
-          </Field>
-          <Field label="Business category" full>
-            <select
-              className="input"
-              required
-              value={form.category}
-              onChange={(e) => set("category", e.target.value)}
-            >
-              <option value="" disabled>
-                Select a category…
-              </option>
-              {businessCategories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="TIN / RC number">
-            <input
-              className="input"
-              value={form.tin}
-              onChange={(e) => set("tin", e.target.value)}
-            />
-          </Field>
-          <Field label="Number of staff">
-            <input
-              type="number"
-              min={0}
-              className="input"
-              value={form.staff}
-              onChange={(e) => set("staff", Number(e.target.value))}
-            />
-          </Field>
-        </Section>
-
-        <Section title="Location">
-          <Field label="Ward">
-            <select
-              className="input"
-              required
-              value={form.ward}
-              onChange={(e) => set("ward", e.target.value)}
-            >
-              {wards.map((w) => (
-                <option key={w}>{w}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Town / community">
-            <input
-              className="input"
-              value={form.town}
-              onChange={(e) => set("town", e.target.value)}
-            />
-          </Field>
-          <Field label="Street address" full>
-            <input
-              className="input"
-              required
-              value={form.address}
-              onChange={(e) => set("address", e.target.value)}
-              placeholder="House no., street"
-            />
-          </Field>
-          <Field label="Nearest landmark" full>
-            <input
-              className="input"
-              value={form.landmark}
-              onChange={(e) => set("landmark", e.target.value)}
-            />
-          </Field>
-          <Field label="GPS latitude">
-            <input
-              className="input"
-              value={form.lat}
-              onChange={(e) => set("lat", e.target.value)}
-              placeholder="8.876"
-            />
-          </Field>
-          <Field label="GPS longitude">
-            <input
-              className="input"
-              value={form.lng}
-              onChange={(e) => set("lng", e.target.value)}
-              placeholder="7.027"
-            />
-          </Field>
-        </Section>
-
-        <Section title="Contact & obligation">
-          <Field label="Phone">
-            <input
-              className="input"
-              value={form.phone}
-              onChange={(e) => set("phone", e.target.value)}
-            />
-          </Field>
-          <Field label="Email">
-            <input
-              type="email"
-              className="input"
-              value={form.email}
-              onChange={(e) => set("email", e.target.value)}
-            />
-          </Field>
-          <Field label="Annual obligation (₦)">
-            <input
-              type="number"
-              className="input"
-              value={form.levy}
-              onChange={(e) => set("levy", Number(e.target.value))}
-            />
-          </Field>
-        </Section>
-
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-border px-5 py-2 text-sm font-semibold hover:bg-secondary"
-          >
-            Cancel
-          </button>
-          <button className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-95">
-            Save & generate ref
-          </button>
-        </div>
-      </form>
-
-      <style>{`.input{margin-top:.25rem;width:100%;border-radius:.5rem;border:1px solid hsl(var(--border));background:hsl(var(--background));padding:.5rem .75rem;font-size:.875rem;color:hsl(var(--foreground))}`}</style>
+    <div className="surface-card p-5">
+      <div className="flex items-start justify-between">
+        <div className={`rounded-xl p-2.5 ${bg}`}>{icon}</div>
+      </div>
+      <div className="mt-3 font-display text-2xl font-bold tracking-tight text-ink">{value}</div>
+      <div className="mt-1 text-xs font-semibold text-muted-foreground">{label}</div>
+      {hint && <div className="mt-0.5 text-[11px] text-muted-foreground/70">{hint}</div>}
     </div>
   );
 }
 
-function DetailModal({
-  biz,
-  onClose,
-  onPdf,
-}: {
-  biz: RegisteredBusiness;
-  onClose: () => void;
-  onPdf: () => void;
-}) {
+function BizDrawer({ biz, received, onClose }: { biz: Biz; received: number; onClose: () => void }) {
+  const billed = Number(biz.annual_rate) || 0;
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-elegant)]"
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="text-xs font-mono text-muted-foreground">{biz.ref}</div>
-            <h3 className="font-display text-2xl font-bold text-ink">{biz.name}</h3>
-            <div className="text-sm text-muted-foreground">
-              {biz.category} • {biz.ward}
+    <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-border bg-card shadow-2xl">
+        <div className="flex items-start justify-between border-b border-border px-6 py-5">
+          <div className="min-w-0">
+            <div className="truncate font-display text-lg font-bold text-ink">{biz.business_name}</div>
+            <div className="font-mono text-xs text-muted-foreground">{biz.ref}</div>
+          </div>
+          <button onClick={onClose} className="text-sm font-semibold text-muted-foreground hover:text-ink">Close</button>
+        </div>
+        <div className="space-y-3 px-6 py-5 text-sm">
+          {[
+            ["Owner", biz.owner_name ?? "—"],
+            ["Category", biz.category ?? biz.taxpayer_type ?? "—"],
+            ["RC / CAC", biz.rc_number ?? "—"],
+            ["TIN", biz.tin ?? "—"],
+            ["Phone", biz.phone ?? "—"],
+            ["Email", biz.email ?? "—"],
+            ["Ward", biz.ward ?? "—"],
+            ["Address", [biz.building, biz.street, biz.district].filter(Boolean).join(", ") || "—"],
+            ["Status", biz.status],
+            ["Registered", biz.created_at.split("T")[0]],
+            ["Annual bill", fmtNaira(billed)],
+            ["Received", fmtNaira(received)],
+            ["Owing", fmtNaira(Math.max(0, billed - received))],
+          ].map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between gap-3 border-b border-border/60 pb-2">
+              <span className="text-muted-foreground">{k}</span>
+              <span className="text-right font-semibold text-ink">{v}</span>
             </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <Info label="Owner" value={biz.owner} />
-          <Info label="Status" value={biz.status} />
-          <Info label="Phone" value={biz.phone} />
-          <Info label="Email" value={biz.email} />
-          <Info label="TIN / RC" value={biz.tin} />
-          <Info label="Staff" value={biz.staff ? String(biz.staff) : undefined} />
-          <Info label="Renewal due" value={biz.renewal} />
-          <Info label="Annual obligation" value={`₦${biz.levy.toLocaleString()}`} />
-          <Info
-            full
-            label="Address"
-            value={[biz.address, biz.town, biz.landmark].filter(Boolean).join(", ")}
-          />
-          <Info label="GPS" value={biz.lat && biz.lng ? `${biz.lat}, ${biz.lng}` : undefined} />
-          {biz.registeredAt && (
-            <Info label="Registered" value={new Date(biz.registeredAt).toLocaleString()} />
-          )}
-        </div>
-
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="rounded-md border border-border px-5 py-2 text-sm font-semibold hover:bg-secondary"
-          >
-            Close
-          </button>
-          <button
-            onClick={onPdf}
-            className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-95"
-          >
-            Download PDF profile
-          </button>
+          ))}
         </div>
       </div>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="mt-5">
-      <div className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-        {title}
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">{children}</div>
-    </div>
-  );
-}
-
-function Field({ label, full, children }: { label: string; full?: boolean; children: ReactNode }) {
-  return (
-    <label className={`block text-sm font-semibold text-ink ${full ? "md:col-span-2" : ""}`}>
-      {label}
-      {children}
-    </label>
-  );
-}
-
-function Info({ label, value, full }: { label: string; value?: string; full?: boolean }) {
-  return (
-    <div className={full ? "sm:col-span-2" : ""}>
-      <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-0.5 text-sm font-semibold text-ink">{value || "—"}</div>
-    </div>
-  );
-}
-
-function Stat({ t, v, color }: { t: string; v: string; color: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        {t}
-      </div>
-      <div className={`mt-1 font-display text-xl font-bold ${color}`}>{v}</div>
     </div>
   );
 }

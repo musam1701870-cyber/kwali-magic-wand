@@ -1,173 +1,240 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DashboardShell } from "@/shared/components/layout/DashboardShell";
-import { kpis, wardRevenue } from "@/shared/lib/kwali-mock";
+import { SectionTabs } from "@/shared/components/ui/SectionTabs";
+import { supabase } from "@/integrations/supabase/client";
+import { fmtNaira } from "@/shared/lib/utils";
+import {
+  AlertTriangle,
+  Wallet,
+  ClipboardList,
+  MapPin,
+  Loader2,
+  Store,
+  Bike,
+  Building2,
+  Home,
+} from "lucide-react";
 
 export const Route = createFileRoute("/(admin)/intelligence")({
-  head: () => ({ meta: [{ title: "Revenue Intelligence — KARCIP" }] }),
-  component: IntelligencePage,
+  head: () => ({ meta: [{ title: "Revenue Watch — Kwali Revenue Portal" }] }),
+  component: RevenueWatchPage,
 });
 
-const fmt = (n: number) => "₦" + n.toLocaleString();
+// Revenue Watch — practical flags from the live registers, in plain terms:
+// where money is expected, where it has come in, and which areas need
+// follow-up. No forecasts or invented insights — only what the data shows.
 
-const insights = [
-  {
-    t: "Deploy enforcement to Yangoji market",
-    d: "Compliance dropped 18% over 3 weeks. Predicted recovery: ₦4.2m.",
-  },
-  {
-    t: "Reissue demand notices for 47 hotels",
-    d: "Hospitality sector under-collecting by 38% vs forecast.",
-  },
-  {
-    t: "Audit POS operators in Kwali ward",
-    d: "23 unregistered POS terminals detected via bank data.",
-  },
-  {
-    t: "Renew QR stickers — 312 expiring",
-    d: "Tricycle stickers expire in 14 days. Auto-notify operators.",
-  },
-  {
-    t: "Investigate Pai property under-assessment",
-    d: "GPS audit suggests 14 commercial properties classed residential.",
-  },
-  { t: "Increase market ticket rounds", d: "Dafa Cattle Market shows highest yield-per-officer." },
-];
+type CountRow = { ward: string | null; status: string; annual?: number | null };
 
-function IntelligencePage() {
-  const totalExpected = wardRevenue.reduce((s, w) => s + w.expected, 0);
-  const totalCollected = wardRevenue.reduce((s, w) => s + w.collected, 0);
-  const totalLeakage = totalExpected - totalCollected;
-  const highRisk = [...wardRevenue].sort((a, b) => a.compliance - b.compliance).slice(0, 3);
-  const [assigned, setAssigned] = useState<Set<string>>(new Set());
+function RevenueWatchPage() {
+  const [loading, setLoading] = useState(true);
+  const [businesses, setBusinesses] = useState<CountRow[]>([]);
+  const [properties, setProperties] = useState<CountRow[]>([]);
+  const [stalls, setStalls] = useState<CountRow[]>([]);
+  const [vehicles, setVehicles] = useState<CountRow[]>([]);
+  const [payments, setPayments] = useState<{ source_table: string; amount: number; ward: string | null; created_at: string }[]>([]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [b, p, m, t, pay] = await Promise.all([
+        supabase.from("businesses").select("ward, status, annual_rate").limit(1000),
+        supabase.from("properties").select("ward, status, annual_rate").limit(1000),
+        supabase.from("market_stalls").select("ward, status").limit(1000),
+        supabase.from("transport_vehicles").select("ward, status").limit(1000),
+        supabase
+          .from("payments")
+          .select("source_table, amount, ward, created_at")
+          .eq("status", "confirmed")
+          .order("created_at", { ascending: false })
+          .limit(2000),
+      ]);
+      for (const r of [b, p, m, t, pay]) if (r.error) throw new Error(r.error.message);
+      setBusinesses((b.data ?? []) as CountRow[]);
+      setProperties((p.data ?? []) as CountRow[]);
+      setStalls((m.data ?? []) as CountRow[]);
+      setVehicles((t.data ?? []) as CountRow[]);
+      setPayments((pay.data ?? []) as { source_table: string; amount: number; ward: string | null; created_at: string }[]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not load revenue watch data");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const streamStats = useMemo(() => {
+    const receivedFor = (table: string) =>
+      payments.filter((p) => p.source_table === table).reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    const billedBiz = businesses.reduce((s, r) => s + (Number(r.annual) || 0), 0);
+    const billedProps = properties.reduce((s, r) => s + (Number(r.annual) || 0), 0);
+    return [
+      { id: "businesses", label: "Businesses", icon: <Building2 className="h-4 w-4" />, registered: businesses.length, pending: businesses.filter((r) => r.status === "Pending").length, billed: billedBiz, received: receivedFor("businesses") },
+      { id: "properties", label: "Properties", icon: <Home className="h-4 w-4" />, registered: properties.length, pending: properties.filter((r) => r.status === "Pending").length, billed: billedProps, received: receivedFor("properties") },
+      { id: "markets", label: "Market traders", icon: <Store className="h-4 w-4" />, registered: stalls.length, pending: stalls.filter((r) => r.status === "Pending").length, billed: 0, received: receivedFor("market_stalls") },
+      { id: "transport", label: "Transport", icon: <Bike className="h-4 w-4" />, registered: vehicles.length, pending: vehicles.filter((r) => r.status === "Pending").length, billed: 0, received: receivedFor("transport_vehicles") },
+    ];
+  }, [businesses, properties, stalls, vehicles, payments]);
+
+  const todayByWard = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of payments.filter((x) => x.created_at.slice(0, 10) === today)) {
+      const w = p.ward || "Unassigned";
+      map.set(w, (map.get(w) ?? 0) + (Number(p.amount) || 0));
+    }
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [payments, today]);
+
+  // Practical follow-up flags, each phrased as something an officer understands.
+  const flags = useMemo(() => {
+    const list: { title: string; detail: string; tone: "danger" | "warning" }[] = [];
+    const pendingTotal = streamStats.reduce((s, x) => s + x.pending, 0);
+    if (pendingTotal > 0)
+      list.push({ title: `${pendingTotal} registrations are waiting for approval`, detail: "Businesses, properties, traders and vehicles that cannot be billed until an officer approves them.", tone: "warning" });
+    const unpaidBiz = streamStats[0].billed - streamStats[0].received;
+    if (unpaidBiz > 0)
+      list.push({ title: `${fmtNaira(unpaidBiz)} in business bills is unpaid`, detail: "Open the Business Registry 'Owing' list and issue demand notices.", tone: "danger" });
+    const unpaidProps = streamStats[1].billed - streamStats[1].received;
+    if (unpaidProps > 0)
+      list.push({ title: `${fmtNaira(unpaidProps)} in tenement rates is unpaid`, detail: "Open the Properties 'Arrears' list and follow up with property owners.", tone: "danger" });
+    if (todayByWard.length > 0) {
+      const [, topAmount] = todayByWard[0];
+      const total = todayByWard.reduce((s, [, a]) => s + a, 0);
+      const [, lowAmount] = todayByWard[todayByWard.length - 1];
+      if (todayByWard.length > 1 && lowAmount < topAmount * 0.3)
+        list.push({ title: "Some wards collected very little today", detail: `Today's collections range from ${fmtNaira(lowAmount)} to ${fmtNaira(topAmount)} (total ${fmtNaira(total)}). Check ward activity in the summary tab.`, tone: "warning" });
+    }
+    if (list.length === 0)
+      list.push({ title: "Nothing needs attention", detail: "Approvals are clear and collections are being recorded across the wards.", tone: "warning" });
+    return list;
+  }, [streamStats, todayByWard]);
+
+  const totalReceived = payments.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+  const totalBilled = streamStats.reduce((s, x) => s + x.billed, 0);
+  const totalToday = todayByWard.reduce((s, [, a]) => s + a, 0);
+
+  if (loading) {
+    return (
+      <DashboardShell title="Revenue Watch" subtitle="Where money is expected, received, or needs follow-up">
+        <div className="surface-card flex items-center gap-2 p-6 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
-    <DashboardShell
-      title="Revenue Intelligence"
-      subtitle="AI-driven leakage detection, forecasting and enforcement recommendations"
-    >
-      <div className="grid gap-4 md:grid-cols-4">
-        <Stat label="Expected revenue" value={fmt(kpis.expected)} />
-        <Stat label="Actual revenue" value={fmt(kpis.year)} accent="primary" />
-        <Stat label="Leakage detected" value={fmt(totalLeakage)} accent="destructive" />
-        <Stat label="Compliance" value={`${kpis.compliance}%`} accent="gold" />
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-          <h2 className="font-display text-lg font-bold text-ink">🚨 High-risk wards</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Lowest compliance — prioritise enforcement sweeps.
-          </p>
-          <ul className="mt-4 space-y-3">
-            {highRisk.map((w) => (
-              <li
-                key={w.ward}
-                className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/5 p-3"
-              >
-                <div>
-                  <div className="font-semibold text-ink">{w.ward}</div>
-                  <div className="text-xs text-muted-foreground">Leakage {fmt(w.leakage)}</div>
+    <DashboardShell title="Revenue Watch" subtitle="Where money is expected, received, or needs follow-up">
+      <SectionTabs
+        sections={[
+          {
+            id: "position",
+            label: "Money Position",
+            hint: "What has been billed, received, and collected today.",
+            content: (
+              <div className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Kpi label="Bills raised" value={fmtNaira(totalBilled)} hint="Annual business permits + tenement rates" icon={<ClipboardList className="h-5 w-5" />} tone="gold" />
+                  <Kpi label="Money received" value={fmtNaira(totalReceived)} hint="All confirmed payments on record" icon={<Wallet className="h-5 w-5" />} tone="success" />
+                  <Kpi label="Collected today" value={fmtNaira(totalToday)} hint={`${todayByWard.length} wards reporting`} icon={<MapPin className="h-5 w-5" />} tone="primary" />
                 </div>
-                <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-bold text-destructive">
-                  {w.compliance}%
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-          <h2 className="font-display text-lg font-bold text-ink">🔮 Forecast — Q3 2026</h2>
-          <div className="mt-4 space-y-4">
-            <Bar label="Property" pct={72} hint="₦52m projected" />
-            <Bar label="Business" pct={64} hint="₦48m projected" />
-            <Bar label="Transport" pct={81} hint="₦38m projected" />
-            <Bar label="Market" pct={58} hint="₦22m projected" />
-            <Bar label="Environmental" pct={45} hint="₦12m projected" />
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-ink">
-            🧠 AI insights & recommended actions
-          </h2>
-          {assigned.size > 0 && (
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              {assigned.size} assigned
-            </span>
-          )}
-        </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {insights.map((i) => {
-            const isAssigned = assigned.has(i.t);
-            return (
-              <div key={i.t} className="rounded-xl border border-border bg-surface p-4">
-                <div className="font-semibold text-ink">{i.t}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{i.d}</div>
-                <button
-                  onClick={() => {
-                    setAssigned((prev) => new Set(prev).add(i.t));
-                    toast.success("Action assigned to enforcement", { description: i.t });
-                  }}
-                  disabled={isAssigned}
-                  className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-95 disabled:cursor-default disabled:bg-emerald-600"
-                >
-                  {isAssigned ? "✓ Assigned" : "Assign action"}
-                </button>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {streamStats.map((s) => (
+                    <div key={s.id} className="surface-card p-4">
+                      <div className="flex items-center gap-2 text-sm font-bold text-ink">
+                        <span className="text-primary">{s.icon}</span> {s.label}
+                      </div>
+                      <div className="mt-3 space-y-1 text-xs">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Registered</span><span className="font-semibold text-ink">{s.registered}</span></div>
+                        {s.billed > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Billed</span><span className="font-semibold text-ink">{fmtNaira(s.billed)}</span></div>}
+                        <div className="flex justify-between"><span className="text-muted-foreground">Received</span><span className="font-semibold text-primary">{fmtNaira(s.received)}</span></div>
+                        {s.pending > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Awaiting approval</span><span className="font-semibold text-amber-700">{s.pending}</span></div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            ),
+          },
+          {
+            id: "followup",
+            label: "Needs Follow-up",
+            hint: "Practical flags an officer can act on today.",
+            badge: flags.length,
+            content: (
+              <div className="space-y-3">
+                {flags.map((f) => (
+                  <div
+                    key={f.title}
+                    className={"surface-card flex items-start gap-3 p-4 " + (f.tone === "danger" ? "border-destructive/30" : "border-warning/40")}
+                  >
+                    <span className={"mt-0.5 shrink-0 rounded-lg p-2 " + (f.tone === "danger" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-700")}>
+                      <AlertTriangle className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <div className="text-sm font-bold text-ink">{f.title}</div>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{f.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ),
+          },
+          {
+            id: "wards",
+            label: "Ward Summary",
+            hint: "Today's confirmed collections by ward.",
+            content: (
+              <div className="surface-card">
+                <div className="border-b border-border px-5 py-4">
+                  <h3 className="font-display text-base font-bold text-ink">Collections today by ward</h3>
+                </div>
+                {todayByWard.length === 0 ? (
+                  <div className="p-10 text-center text-sm text-muted-foreground">No confirmed collections recorded today.</div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {todayByWard.map(([ward, amount]) => {
+                      const max = todayByWard[0]?.[1] || 1;
+                      return (
+                        <div key={ward} className="px-5 py-3.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-semibold text-ink">{ward}</span>
+                            <span className="font-bold text-primary">{fmtNaira(amount)}</span>
+                          </div>
+                          <div className="mt-1.5 h-1.5 rounded-full bg-secondary">
+                            <div className="h-1.5 rounded-full bg-primary" style={{ width: `${Math.max(4, Math.round((amount / max) * 100))}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
     </DashboardShell>
   );
 }
 
-function Stat({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent?: "primary" | "destructive" | "gold";
-}) {
-  const color =
-    accent === "destructive"
-      ? "text-destructive"
-      : accent === "gold"
-        ? "text-gold-foreground"
-        : accent === "primary"
-          ? "text-primary"
-          : "text-ink";
+function Kpi({ label, value, hint, icon, tone }: { label: string; value: string; hint?: string; icon: React.ReactNode; tone: "success" | "primary" | "gold" }) {
+  const bg = tone === "success" ? "bg-emerald-50 text-emerald-600" : tone === "gold" ? "bg-amber-50 text-amber-600" : "bg-primary/8 text-primary";
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        {label}
+    <div className="surface-card p-5">
+      <div className="flex items-start justify-between">
+        <div className={`rounded-xl p-2.5 ${bg}`}>{icon}</div>
       </div>
-      <div className={`mt-2 font-display text-2xl font-bold ${color}`}>{value}</div>
-    </div>
-  );
-}
-
-function Bar({ label, pct, hint }: { label: string; pct: number; hint: string }) {
-  return (
-    <div>
-      <div className="flex justify-between text-sm font-semibold text-ink">
-        <span>{label}</span>
-        <span>{pct}%</span>
-      </div>
-      <div className="mt-1 h-2 rounded-full bg-secondary">
-        <div
-          className="h-2 rounded-full bg-gradient-to-r from-primary to-gold"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>
+      <div className="mt-3 font-display text-2xl font-bold tracking-tight text-ink">{value}</div>
+      <div className="mt-1 text-xs font-semibold text-muted-foreground">{label}</div>
+      {hint && <div className="mt-0.5 text-[11px] text-muted-foreground/70">{hint}</div>}
     </div>
   );
 }

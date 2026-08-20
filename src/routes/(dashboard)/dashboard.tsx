@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { DashboardShell } from "@/shared/components/layout/DashboardShell";
 import { PayDialog, type PayTarget } from "@/shared/components/layout/PayDialog";
 import { StatusBadge } from "@/shared/components/ui/status-badge";
+import { useAuth } from "@/shared/hooks/useAuth";
 import { properties, payments, violations } from "@/shared/lib/kwali-mock";
 import {
   TrendingUp,
@@ -87,6 +88,28 @@ function StatCard({
 function DashboardPage() {
   const [paidRefs, setPaidRefs] = useState<Set<string>>(new Set());
   const [payTarget, setPayTarget] = useState<PayTarget | null>(null);
+  const { user, isAdmin, roles, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // This is the taxpayer overview — staff roles must never land here. Send each
+  // staff account to the dashboard built for its job.
+  useEffect(() => {
+    if (loading || !user) return;
+    if (isAdmin || roles.includes("chairman")) navigate({ to: "/executive" });
+    else if (roles.includes("marshal")) navigate({ to: "/marshal" });
+    else if (roles.includes("officer")) navigate({ to: "/officer" });
+  }, [user, isAdmin, roles, loading, navigate]);
+
+  if (isAdmin || roles.includes("chairman") || roles.includes("marshal") || roles.includes("officer")) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Opening your dashboard…</p>
+        </div>
+      </div>
+    );
+  }
 
   const unpaidBills = properties.filter((p) => p.status !== "Paid" && !paidRefs.has(p.pin));
   const outstanding = unpaidBills.reduce((s, p) => s + p.annualRate, 0);

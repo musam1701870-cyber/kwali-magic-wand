@@ -72,7 +72,7 @@ function SignupPage() {
   };
 
   const google = async () => {
-    const { lovable } = await import("@/integrations/lovable");
+    const { lovable } = await import("@/integrations/oauth");
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin + "/portal",
     });

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './../../routes/__root'
 import { Route as publicIndexRouteImport } from './../../routes/(public)/index'
+import { Route as publicReprintCardRouteImport } from './../../routes/(public)/reprint-card'
 import { Route as publicRegisterRouteImport } from './../../routes/(public)/register'
 import { Route as publicPayRouteImport } from './../../routes/(public)/pay'
 import { Route as publicContactRouteImport } from './../../routes/(public)/contact'
@@ -42,6 +43,7 @@ import { Route as ApiPublicVerifyReceiptRouteImport } from './../../routes/api/p
 import { Route as ApiPublicSeedDemoRouteImport } from './../../routes/api/public/seed-demo'
 import { Route as ApiPublicPayReferenceRouteImport } from './../../routes/api/public/pay-reference'
 import { Route as ApiPublicLookupRouteImport } from './../../routes/api/public/lookup'
+import { Route as ApiPublicIdCardByPhoneRouteImport } from './../../routes/api/public/id-card-by-phone'
 import { Route as publicVerifyTokenRouteImport } from './../../routes/(public)/verify.$token'
 import { Route as publicPropertiesRegisterRouteImport } from './../../routes/(public)/properties.register'
 import { Route as authAuthSignupRouteImport } from './../../routes/(auth)/auth.signup'
@@ -64,6 +66,11 @@ import { Route as adminExecutiveComplianceRouteImport } from './../../routes/(ad
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const publicReprintCardRoute = publicReprintCardRouteImport.update({
+  id: '/(public)/reprint-card',
+  path: '/reprint-card',
   getParentRoute: () => rootRouteImport,
 } as any)
 const publicRegisterRoute = publicRegisterRouteImport.update({
@@ -226,6 +233,11 @@ const ApiPublicLookupRoute = ApiPublicLookupRouteImport.update({
   path: '/api/public/lookup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIdCardByPhoneRoute = ApiPublicIdCardByPhoneRouteImport.update({
+  id: '/api/public/id-card-by-phone',
+  path: '/api/public/id-card-by-phone',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const publicVerifyTokenRoute = publicVerifyTokenRouteImport.update({
   id: '/(public)/verify/$token',
   path: '/verify/$token',
@@ -346,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof publicContactRoute
   '/pay': typeof publicPayRoute
   '/register': typeof publicRegisterRoute
+  '/reprint-card': typeof publicReprintCardRoute
   '/': typeof publicIndexRoute
   '/executive/compliance': typeof adminExecutiveComplianceRoute
   '/executive/enforcement': typeof adminExecutiveEnforcementRoute
@@ -365,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof authAuthSignupRoute
   '/properties/register': typeof publicPropertiesRegisterRoute
   '/verify/$token': typeof publicVerifyTokenRoute
+  '/api/public/id-card-by-phone': typeof ApiPublicIdCardByPhoneRoute
   '/api/public/lookup': typeof ApiPublicLookupRoute
   '/api/public/pay-reference': typeof ApiPublicPayReferenceRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
@@ -399,6 +413,7 @@ export interface FileRoutesByTo {
   '/contact': typeof publicContactRoute
   '/pay': typeof publicPayRoute
   '/register': typeof publicRegisterRoute
+  '/reprint-card': typeof publicReprintCardRoute
   '/': typeof publicIndexRoute
   '/executive/compliance': typeof adminExecutiveComplianceRoute
   '/executive/enforcement': typeof adminExecutiveEnforcementRoute
@@ -418,6 +433,7 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof authAuthSignupRoute
   '/properties/register': typeof publicPropertiesRegisterRoute
   '/verify/$token': typeof publicVerifyTokenRoute
+  '/api/public/id-card-by-phone': typeof ApiPublicIdCardByPhoneRoute
   '/api/public/lookup': typeof ApiPublicLookupRoute
   '/api/public/pay-reference': typeof ApiPublicPayReferenceRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
@@ -453,6 +469,7 @@ export interface FileRoutesById {
   '/(public)/contact': typeof publicContactRoute
   '/(public)/pay': typeof publicPayRoute
   '/(public)/register': typeof publicRegisterRoute
+  '/(public)/reprint-card': typeof publicReprintCardRoute
   '/(public)/': typeof publicIndexRoute
   '/(admin)/executive/compliance': typeof adminExecutiveComplianceRoute
   '/(admin)/executive/enforcement': typeof adminExecutiveEnforcementRoute
@@ -472,6 +489,7 @@ export interface FileRoutesById {
   '/(auth)/auth/signup': typeof authAuthSignupRoute
   '/(public)/properties/register': typeof publicPropertiesRegisterRoute
   '/(public)/verify/$token': typeof publicVerifyTokenRoute
+  '/api/public/id-card-by-phone': typeof ApiPublicIdCardByPhoneRoute
   '/api/public/lookup': typeof ApiPublicLookupRoute
   '/api/public/pay-reference': typeof ApiPublicPayReferenceRoute
   '/api/public/seed-demo': typeof ApiPublicSeedDemoRoute
@@ -508,6 +526,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pay'
     | '/register'
+    | '/reprint-card'
     | '/'
     | '/executive/compliance'
     | '/executive/enforcement'
@@ -527,6 +546,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/properties/register'
     | '/verify/$token'
+    | '/api/public/id-card-by-phone'
     | '/api/public/lookup'
     | '/api/public/pay-reference'
     | '/api/public/seed-demo'
@@ -561,6 +581,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pay'
     | '/register'
+    | '/reprint-card'
     | '/'
     | '/executive/compliance'
     | '/executive/enforcement'
@@ -580,6 +601,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/properties/register'
     | '/verify/$token'
+    | '/api/public/id-card-by-phone'
     | '/api/public/lookup'
     | '/api/public/pay-reference'
     | '/api/public/seed-demo'
@@ -614,6 +636,7 @@ export interface FileRouteTypes {
     | '/(public)/contact'
     | '/(public)/pay'
     | '/(public)/register'
+    | '/(public)/reprint-card'
     | '/(public)/'
     | '/(admin)/executive/compliance'
     | '/(admin)/executive/enforcement'
@@ -633,6 +656,7 @@ export interface FileRouteTypes {
     | '/(auth)/auth/signup'
     | '/(public)/properties/register'
     | '/(public)/verify/$token'
+    | '/api/public/id-card-by-phone'
     | '/api/public/lookup'
     | '/api/public/pay-reference'
     | '/api/public/seed-demo'
@@ -668,11 +692,13 @@ export interface RootRouteChildren {
   publicContactRoute: typeof publicContactRoute
   publicPayRoute: typeof publicPayRoute
   publicRegisterRoute: typeof publicRegisterRoute
+  publicReprintCardRoute: typeof publicReprintCardRoute
   publicIndexRoute: typeof publicIndexRoute
   authAuthLoginRoute: typeof authAuthLoginRoute
   authAuthSignupRoute: typeof authAuthSignupRoute
   publicPropertiesRegisterRoute: typeof publicPropertiesRegisterRoute
   publicVerifyTokenRoute: typeof publicVerifyTokenRoute
+  ApiPublicIdCardByPhoneRoute: typeof ApiPublicIdCardByPhoneRoute
   ApiPublicLookupRoute: typeof ApiPublicLookupRoute
   ApiPublicPayReferenceRoute: typeof ApiPublicPayReferenceRoute
   ApiPublicSeedDemoRoute: typeof ApiPublicSeedDemoRoute
@@ -690,6 +716,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof publicIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/reprint-card': {
+      id: '/(public)/reprint-card'
+      path: '/reprint-card'
+      fullPath: '/reprint-card'
+      preLoaderRoute: typeof publicReprintCardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(public)/register': {
@@ -916,6 +949,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLookupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/id-card-by-phone': {
+      id: '/api/public/id-card-by-phone'
+      path: '/api/public/id-card-by-phone'
+      fullPath: '/api/public/id-card-by-phone'
+      preLoaderRoute: typeof ApiPublicIdCardByPhoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(public)/verify/$token': {
       id: '/(public)/verify/$token'
       path: '/verify/$token'
@@ -1118,11 +1158,13 @@ const rootRouteChildren: RootRouteChildren = {
   publicContactRoute: publicContactRoute,
   publicPayRoute: publicPayRoute,
   publicRegisterRoute: publicRegisterRoute,
+  publicReprintCardRoute: publicReprintCardRoute,
   publicIndexRoute: publicIndexRoute,
   authAuthLoginRoute: authAuthLoginRoute,
   authAuthSignupRoute: authAuthSignupRoute,
   publicPropertiesRegisterRoute: publicPropertiesRegisterRoute,
   publicVerifyTokenRoute: publicVerifyTokenRoute,
+  ApiPublicIdCardByPhoneRoute: ApiPublicIdCardByPhoneRoute,
   ApiPublicLookupRoute: ApiPublicLookupRoute,
   ApiPublicPayReferenceRoute: ApiPublicPayReferenceRoute,
   ApiPublicSeedDemoRoute: ApiPublicSeedDemoRoute,

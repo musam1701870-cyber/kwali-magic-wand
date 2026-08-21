@@ -320,43 +320,52 @@ export const insertRegistration = createServerFn({ method: "POST" })
   .validator(RegistrationInputSchema)
   .handler(async ({ data }) => {
     // Each branch pairs the literal table with its correctly-typed row so the
-    // Supabase client can type-check the insert.
+    // Supabase client can type-check the insert. Return the qr_token alongside the
+    // ref so the caller can render the ID card immediately — anonymous self-service
+    // users cannot re-read the row through RLS, so the server must hand it back.
     let ref: string | null = null;
+    let qrToken: string | null = null;
     let error: { message: string } | null = null;
+
+    const pick = (r: { data: { ref?: string; qr_token?: string } | null; error: { message: string } | null }) => {
+      error = r.error;
+      ref = r.data?.ref ?? null;
+      qrToken = r.data?.qr_token ?? null;
+    };
 
     switch (data.table) {
       case "transport_vehicles": {
-        const r = await supabaseAdmin.from("transport_vehicles").insert(mapTransport(data.data)).select("ref").single();
-        error = r.error; ref = r.data?.ref ?? null; break;
+        pick(await supabaseAdmin.from("transport_vehicles").insert(mapTransport(data.data)).select("ref, qr_token").single());
+        break;
       }
       case "properties": {
-        const r = await supabaseAdmin.from("properties").insert(mapProperty(data.data)).select("ref").single();
-        error = r.error; ref = r.data?.ref ?? null; break;
+        pick(await supabaseAdmin.from("properties").insert(mapProperty(data.data)).select("ref, qr_token").single());
+        break;
       }
       case "market_stalls": {
-        const r = await supabaseAdmin.from("market_stalls").insert(mapMarketStall(data.data)).select("ref").single();
-        error = r.error; ref = r.data?.ref ?? null; break;
+        pick(await supabaseAdmin.from("market_stalls").insert(mapMarketStall(data.data)).select("ref, qr_token").single());
+        break;
       }
       case "hospitality_permits": {
-        const r = await supabaseAdmin.from("hospitality_permits").insert(mapHospitality(data.data)).select("ref").single();
-        error = r.error; ref = r.data?.ref ?? null; break;
+        pick(await supabaseAdmin.from("hospitality_permits").insert(mapHospitality(data.data)).select("ref, qr_token").single());
+        break;
       }
       case "pos_operators": {
-        const r = await supabaseAdmin.from("pos_operators").insert(mapPos(data.data)).select("ref").single();
-        error = r.error; ref = r.data?.ref ?? null; break;
+        pick(await supabaseAdmin.from("pos_operators").insert(mapPos(data.data)).select("ref, qr_token").single());
+        break;
       }
       case "sanitation_subscriptions": {
-        const r = await supabaseAdmin.from("sanitation_subscriptions").insert(mapSanitation(data.data)).select("ref").single();
-        error = r.error; ref = r.data?.ref ?? null; break;
+        pick(await supabaseAdmin.from("sanitation_subscriptions").insert(mapSanitation(data.data)).select("ref, qr_token").single());
+        break;
       }
       case "businesses": {
-        const r = await supabaseAdmin.from("businesses").insert(mapBusiness(data.data)).select("ref").single();
-        error = r.error; ref = r.data?.ref ?? null; break;
+        pick(await supabaseAdmin.from("businesses").insert(mapBusiness(data.data)).select("ref, qr_token").single());
+        break;
       }
     }
 
     if (error) {
       throw new Error(error.message);
     }
-    return { success: true, ref };
+    return { success: true, ref, qrToken };
   });

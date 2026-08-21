@@ -68,6 +68,23 @@ export const createStaffAccount = createServerFn({ method: "POST" })
     const callerId = await callerUserId(data.callerToken);
     await assertAdmin(callerId);
 
+    // One account per phone number across the whole platform.
+    if (data.phone) {
+      const phoneDigits = data.phone.replace(/[^0-9]/g, "");
+      if (phoneDigits.length >= 7) {
+        const { data: phoneRows } = await supabaseAdmin
+          .from("profiles")
+          .select("id, phone")
+          .not("phone", "is", null);
+        const taken = (phoneRows ?? []).some(
+          (p) => typeof p.phone === "string" && p.phone.replace(/[^0-9]/g, "").endsWith(phoneDigits.slice(-7)),
+        );
+        if (taken) {
+          throw new Error("This phone number is already registered to another account. Please use a different phone number.");
+        }
+      }
+    }
+
     // 1. Create the auth user. email_confirm skips the verification email —
     //    the admin vouches for the account by creating it.
     const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({

@@ -1,11 +1,15 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import crest from "@/shared/assets/kwali-crest.png";
 import { businessCategories, wards } from "@/shared/lib/kwali-mock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { LocationPicker } from "@/shared/components/ui/LocationPicker";
+import { DashboardShell } from "@/shared/components/layout/DashboardShell";
+import { TaxpayerIdCard } from "@/shared/components/ui/TaxpayerIdCard";
 import { insertRegistration } from "@/shared/lib/api/registration.functions";
+import { createTaxpayerAccount } from "@/shared/lib/api/taxpayer-account.functions";
 
 export const Route = createFileRoute("/(public)/register")({
   head: () => ({ meta: [{ title: "Taxpayer Registration — Kwali Smart Revenue Platform" }] }),
@@ -494,9 +498,12 @@ const empty: FormState = {
 const STORAGE_KEY = "ksrp-registration-draft";
 
 function RegisterPage() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, roles, loading } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ from: "/(public)/register" });
+  // Staff registering on behalf of a taxpayer keep the dashboard chrome (sidebar
+  // stays visible); anonymous self-service users get the standalone public layout.
+  const isStaff = isAdmin || roles.includes("chairman") || roles.includes("officer") || roles.includes("marshal");
   
   // Map category from URL to taxpayer type
   const categoryToType: Record<string, string> = {
@@ -514,6 +521,8 @@ function RegisterPage() {
   const [step, setStep] = useState(initialType ? 1 : 0);
   const [form, setForm] = useState<FormState>({ ...empty, type: initialType });
   const [submitted, setSubmitted] = useState<string | null>(null);
+  const [submittedQrToken, setSubmittedQrToken] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(true);
   const [verifying, setVerifying] = useState(false);
   const [matching, setMatching] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -563,15 +572,21 @@ function RegisterPage() {
     return Math.round((done / required.length) * 100);
   }, [form]);
 
+  // Informal taxpayers (transport, market, POS, individual) — only identity and
+  // the vehicle/stall marker are compulsory. Location/GPS is optional for them.
+  const informalTypes = ["motorcycle", "tricycle", "commercial-vehicle", "trader", "lockup", "market", "pos", "individual", "sole"];
+  const isInformal = informalTypes.includes(form.type);
+
   const risk = useMemo(() => {
     let score = 100;
     if (!form.cacVerified && ["cac", "llc"].includes(form.type)) score -= 25;
     if (!form.nin) score -= 15;
     if (!form.uploaded.length) score -= 20;
-    if (!form.lat || !form.lng) score -= 10;
+    // GPS is optional for informal taxpayers, so don't penalise them for skipping it.
+    if (!isInformal && (!form.lat || !form.lng)) score -= 10;
     if (!form.tin) score -= 10;
     return Math.max(5, score);
-  }, [form]);
+  }, [form, isInformal]);
 
   const verifyCAC = async () => {
     if (!form.rc) return;
@@ -608,6 +623,28 @@ function RegisterPage() {
   const next = () => setStep((s) => Math.min(currentSteps.length - 1, s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));
 
+  // Per-step gate: blocks Continue until that step's compulsory fields are filled.
+  const stepName = currentSteps[step];
+  const stepValid = useMemo(() => {
+    if (step === 0) return !!form.type;
+    switch (stepName) {
+      case "Vehicle Information":
+        return !!form.plateNumber.trim() && !!(form.vehicleType || form.type);
+      case "Owner Information":
+      case "Personal Information":
+        return !!form.ownerName.trim() && !!form.nin.trim() && !!(form.ownerPhone || form.phone).trim();
+      case "Trader Information":
+        return !!form.marketName && !!form.goodsCategory;
+      case "Location & Route":
+      case "Location & Stall":
+      case "Location Information":
+        // Informal: whole step optional. Formal/property: ward required.
+        return isInformal ? true : !!form.ward;
+      default:
+        return true;
+    }
+  }, [stepName, step, form, isInformal]);
+
   const submit = async () => {
     if (!form.consent) return;
     setSaving(true);
@@ -617,26 +654,38 @@ function RegisterPage() {
 
     let ownerId = user?.id;
 
-    // If not authenticated, create auth account first
-    if (!ownerId) {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.nin || `Kwali${Date.now()}`, // Use NIN as password or generate one
-        options: {
-          data: {
-            full_name: form.ownerName || form.businessName || "Taxpayer",
-            phone: form.phone,
-            ward: form.ward,
-            account_type: form.type,
-          },
-        },
-      });
-      if (authError) {
-        setSaveError(authError.message);
+    // Every registration creates a real taxpayer account via the service role.
+    // A staff member registering someone else must keep their own session — so we
+    // never call supabase.auth.signUp() here (that would sign the staff member out
+    // and into the new account). Self-service users get the same treatment: the
+    // account is created server-side and they sign in afterwards on their own.
+    const email = (form.email || form.ownerEmail || "").trim();
+    if (!ownerId || isStaff) {
+      if (!email) {
+        setSaveError("An email address is required to create the taxpayer's account.");
         setSaving(false);
         return;
       }
-      ownerId = authData.user?.id;
+      try {
+        const account = await createTaxpayerAccount({
+          data: {
+            fullName: form.ownerName || form.businessName || "Taxpayer",
+            email,
+            phone: form.phone || form.ownerPhone || undefined,
+            ward: form.ward || undefined,
+            nin: form.nin || undefined,
+            accountType: form.type || undefined,
+          },
+        });
+        // Staff registering on behalf: the new account owns the record, not the staff member.
+        // Self-service public user: the account is theirs.
+        if (!user || isStaff) ownerId = account.userId;
+        setEmailSent(account.emailSent !== false);
+      } catch (e) {
+        setSaveError(e instanceof Error ? e.message : "Failed to create account.");
+        setSaving(false);
+        return;
+      }
     }
 
     if (!ownerId) {
@@ -656,10 +705,11 @@ function RegisterPage() {
     const sanitationTypes = ["individual", "sole"]; // individuals can also subscribe to sanitation
 
     const status = isAdmin ? "Active" : "Pending";
+    let capturedQrToken: string | null = null;
 
     try {
       if (propertyTypes.includes(form.type)) {
-        await insertRegistration({
+        const r = await insertRegistration({
           data: {
             table: "properties",
             data: {
@@ -684,20 +734,21 @@ function RegisterPage() {
             },
           },
         });
+        capturedQrToken = r.qrToken ?? null;
       } else if (transportTypes.includes(form.type)) {
-        await insertRegistration({
+        const r = await insertRegistration({
           data: {
             table: "transport_vehicles",
             data: {
               ownerId,
               ref,
-              vehicleType: form.type,
+              vehicleType: form.type as "motorcycle" | "tricycle" | "commercial-vehicle",
               plateNumber: form.plateNumber,
               chassisNumber: form.chassisNumber,
               engineNumber: form.engineNumber,
               make: form.vehicleMake,
               model: form.vehicleModel,
-              year: form.vehicleYear ? parseInt(form.vehicleYear) : null,
+              year: form.vehicleYear ? parseInt(form.vehicleYear) : undefined,
               color: form.vehicleColor,
               operatorName: form.ownerName,
               operatorPhone: form.ownerPhone || form.phone,
@@ -709,8 +760,9 @@ function RegisterPage() {
             },
           },
         });
+        capturedQrToken = r.qrToken ?? null;
       } else if (marketTypes.includes(form.type)) {
-        await insertRegistration({
+        const r = await insertRegistration({
           data: {
             table: "market_stalls",
             data: {
@@ -731,8 +783,9 @@ function RegisterPage() {
             },
           },
         });
+        capturedQrToken = r.qrToken ?? null;
       } else if (hospitalityTypes.includes(form.type)) {
-        await insertRegistration({
+        const r = await insertRegistration({
           data: {
             table: "hospitality_permits",
             data: {
@@ -751,8 +804,9 @@ function RegisterPage() {
             },
           },
         });
+        capturedQrToken = r.qrToken ?? null;
       } else if (posTypes.includes(form.type)) {
-        await insertRegistration({
+        const r = await insertRegistration({
           data: {
             table: "pos_operators",
             data: {
@@ -770,8 +824,9 @@ function RegisterPage() {
             },
           },
         });
+        capturedQrToken = r.qrToken ?? null;
       } else if (sanitationTypes.includes(form.type) && form.obligations.some(o => o.toLowerCase().includes("sanitation"))) {
-        await insertRegistration({
+        const r = await insertRegistration({
           data: {
             table: "sanitation_subscriptions",
             data: {
@@ -788,9 +843,10 @@ function RegisterPage() {
             },
           },
         });
+        capturedQrToken = r.qrToken ?? null;
       } else {
         // Default to businesses table for business permits
-        await insertRegistration({
+        const r = await insertRegistration({
           data: {
             table: "businesses",
             data: {
@@ -825,6 +881,7 @@ function RegisterPage() {
             },
           },
         });
+        capturedQrToken = r.qrToken ?? null;
       }
     } catch (err) {
       serverError = err instanceof Error ? err.message : "Registration failed. Please try again.";
@@ -836,14 +893,26 @@ function RegisterPage() {
       return;
     }
     setSubmitted(ref);
+    setSubmittedQrToken(capturedQrToken);
     localStorage.removeItem(STORAGE_KEY);
+    const registeredEmail = (form.email || form.ownerEmail || "").trim();
+    toast.success("Registration submitted", {
+      description: registeredEmail
+        ? emailSent
+          ? `We sent a verification link to ${registeredEmail}. Please verify the email to activate the account.`
+          : `Account created for ${registeredEmail}. Use "Forgot password" on the login page to get a verification link.`
+        : "Your registration is being reviewed.",
+      duration: 8000,
+    });
   };
 
-  if (submitted) return <SuccessScreen id={submitted} form={form} />;
+  if (submitted) return <SuccessScreen id={submitted} form={form} isStaff={isStaff} qrToken={submittedQrToken} emailSent={emailSent} />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary/30 via-background to-background">
-      {/* Top bar */}
+    <RegisterShell isStaff={isStaff}>
+    <div className={isStaff ? "" : "min-h-screen bg-gradient-to-b from-secondary/30 via-background to-background"}>
+      {/* Top bar — public only; staff get the dashboard header from the shell */}
+      {!isStaff && (
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
           <Link to="/" className="flex items-center gap-3">
@@ -869,6 +938,7 @@ function RegisterPage() {
           </div>
         </div>
       </header>
+      )}
 
       <main className="mx-auto max-w-6xl px-4 py-8 md:px-8">
         <div className="mb-6">
@@ -970,7 +1040,7 @@ function RegisterPage() {
               {step < currentSteps.length - 1 ? (
                 <button
                   onClick={next}
-                  disabled={step === 0 && !form.type}
+                  disabled={!stepValid}
                   className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40"
                 >
                   Continue →
@@ -994,6 +1064,22 @@ function RegisterPage() {
         </div>
       </main>
     </div>
+    </RegisterShell>
+  );
+}
+
+// ---------- Shell wrapper ----------
+// Staff (admin/officer/marshal/chairman) registering on behalf of a taxpayer keep
+// the dashboard chrome so the sidebar never disappears; the public get the
+// standalone layout. requireAdmin={false} so any signed-in staff role renders.
+function RegisterShell({ isStaff, children }: { isStaff: boolean; children: ReactNode }) {
+  if (!isStaff) return <>{children}</>;
+  return (
+    <DashboardShell title="Register Taxpayer" subtitle="Guided onboarding" requireAdmin={false}>
+      <div className="bg-gradient-to-b from-secondary/30 via-background to-background -m-6 min-h-full p-6">
+        {children}
+      </div>
+    </DashboardShell>
   );
 }
 
@@ -2418,9 +2504,15 @@ function StepLocationRoute({ form, update }: { form: FormState; update: (p: Part
 
   return (
     <div>
-      <h2 className="font-display text-xl font-bold">Location & Route</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-xl font-bold">Location & Route</h2>
+        <span className="rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-muted-foreground">
+          Optional for transport operators
+        </span>
+      </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Enter your operating route/park and drop a pin for your base location.
+        Add your operating route or a base pin if you have one. You can skip this — your plate number
+        and NIN are enough to register and start buying daily tickets.
       </p>
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <div className="grid gap-4 sm:grid-cols-2">
@@ -2429,7 +2521,6 @@ function StepLocationRoute({ form, update }: { form: FormState; update: (p: Part
               value={form.routePark}
               onChange={(e) => update({ routePark: e.target.value })}
               className={inputCls}
-              required
             />
           </Field>
           <Field label="Ward">
@@ -2437,7 +2528,6 @@ function StepLocationRoute({ form, update }: { form: FormState; update: (p: Part
               value={form.ward}
               onChange={(e) => update({ ward: e.target.value })}
               className={inputCls}
-              required
             >
               <option value="">Select ward…</option>
               {wards.map((w) => <option key={w}>{w}</option>)}
@@ -2504,7 +2594,8 @@ function StepLocationStall({ form, update }: { form: FormState; update: (p: Part
     <div>
       <h2 className="font-display text-xl font-bold">Location & Stall</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Enter your market location and stall details.
+        Your market and goods are enough to register. Stall number, ward and the map pin are
+        optional — add them if you have them.
       </p>
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <div className="grid gap-4 sm:grid-cols-2">
@@ -2516,20 +2607,18 @@ function StepLocationStall({ form, update }: { form: FormState; update: (p: Part
               required
             />
           </Field>
-          <Field label="Stall Number">
+          <Field label="Stall Number" hint="Optional — your spot if you have one">
             <input
               value={form.stallNumber}
               onChange={(e) => update({ stallNumber: e.target.value })}
               className={inputCls}
-              required
             />
           </Field>
-          <Field label="Ward">
+          <Field label="Ward" hint="Optional">
             <select
               value={form.ward}
               onChange={(e) => update({ ward: e.target.value })}
               className={inputCls}
-              required
             >
               <option value="">Select ward…</option>
               {wards.map((w) => <option key={w}>{w}</option>)}
@@ -2707,10 +2796,57 @@ const ReviewBlock = ({ title, body }: { title: string; body: string }) => (
 );
 
 // ---------- Success ----------
-function SuccessScreen({ id, form }: { id: string; form: FormState }) {
+// Maps the wizard type to the table it inserted into and the ID card details.
+const ID_CARD_TABLES: Record<string, { table: string; kind: string; lines: (f: FormState) => { label: string; value: string }[] }> = {
+  trader: { table: "market_stalls", kind: "Market Trader", lines: (f) => [{ label: "Market", value: f.marketName || "—" }, { label: "Stall", value: f.stallNumber || "—" }, { label: "Goods", value: f.goodsCategory || "—" }, { label: "Ward", value: f.ward || "—" }] },
+  lockup: { table: "market_stalls", kind: "Market Trader", lines: (f) => [{ label: "Market", value: f.marketName || "—" }, { label: "Stall", value: f.stallNumber || "—" }, { label: "Goods", value: f.goodsCategory || "—" }, { label: "Ward", value: f.ward || "—" }] },
+  market: { table: "market_stalls", kind: "Market Trader", lines: (f) => [{ label: "Market", value: f.marketName || "—" }, { label: "Stall", value: f.stallNumber || "—" }, { label: "Goods", value: f.goodsCategory || "—" }, { label: "Ward", value: f.ward || "—" }] },
+  motorcycle: { table: "transport_vehicles", kind: "Transport Operator", lines: (f) => [{ label: "Plate", value: f.plateNumber || "—" }, { label: "Vehicle", value: "Motorcycle (Okada)" }, { label: "Route", value: f.routePark || "—" }, { label: "Ward", value: f.ward || "—" }] },
+  tricycle: { table: "transport_vehicles", kind: "Transport Operator", lines: (f) => [{ label: "Plate", value: f.plateNumber || "—" }, { label: "Vehicle", value: "Tricycle (Keke)" }, { label: "Route", value: f.routePark || "—" }, { label: "Ward", value: f.ward || "—" }] },
+  "commercial-vehicle": { table: "transport_vehicles", kind: "Transport Operator", lines: (f) => [{ label: "Plate", value: f.plateNumber || "—" }, { label: "Vehicle", value: "Commercial Vehicle" }, { label: "Route", value: f.routePark || "—" }, { label: "Ward", value: f.ward || "—" }] },
+  pos: { table: "pos_operators", kind: "POS Operator", lines: (f) => [{ label: "Location", value: f.district || f.ward || "—" }, { label: "Ward", value: f.ward || "—" }] },
+};
+
+function SuccessScreen({ id, form, isStaff = false, qrToken: qrTokenProp = null, emailSent = true }: { id: string; form: FormState; isStaff?: boolean; qrToken?: string | null; emailSent?: boolean }) {
   const selectedType = taxpayerTypes.find((t) => t.id === form.type);
+  const cardCfg = ID_CARD_TABLES[form.type];
+  // The server function hands back the qr_token from the just-inserted row, so
+  // the card works even for anonymous users who cannot re-read via RLS. Fall
+  // back to a fetch only if the prop wasn't provided.
+  const [qrToken, setQrToken] = useState<string | null>(qrTokenProp);
+  const [cardLoading, setCardLoading] = useState(!!cardCfg && !qrTokenProp);
+
+  useEffect(() => {
+    if (!cardCfg || qrTokenProp) return;
+    let alive = true;
+    // The dynamic table name can't be narrowed by the generated Supabase types;
+    // query untyped and read qr_token off the row.
+    supabase
+      .from(cardCfg.table as never)
+      .select("qr_token")
+      .eq("ref", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (alive) {
+          const row = data as { qr_token?: string } | null;
+          setQrToken(row?.qr_token ?? null);
+          setCardLoading(false);
+        }
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const cardName = form.ownerName || form.businessName || "Taxpayer";
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary/30 via-background to-background">
+    <RegisterShell isStaff={isStaff}>
+    <div className={isStaff ? "" : "min-h-screen bg-gradient-to-b from-secondary/30 via-background to-background"}>
+      {!isStaff && (
       <header className="border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
           <Link to="/" className="flex items-center gap-3">
@@ -2724,6 +2860,7 @@ function SuccessScreen({ id, form }: { id: string; form: FormState }) {
           </Link>
         </div>
       </header>
+      )}
       <main className="mx-auto max-w-3xl px-4 py-12 md:px-8">
         <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">
@@ -2735,6 +2872,35 @@ function SuccessScreen({ id, form }: { id: string; form: FormState }) {
           <p className="mt-1 text-sm text-muted-foreground">
             Your registration is being reviewed by a Kwali revenue officer.
           </p>
+
+          {/* Email verification notice */}
+          {(form.email || form.ownerEmail) && (
+            <div className={`mt-5 flex items-start gap-3 rounded-xl border px-4 py-3 text-left ${emailSent ? "border-blue-200 bg-blue-50" : "border-amber-200 bg-amber-50"}`}>
+              <span className="mt-0.5 text-lg">✉️</span>
+              <div>
+                <div className={`text-sm font-bold ${emailSent ? "text-blue-900" : "text-amber-900"}`}>
+                  {emailSent ? "Verify your email" : "Confirm your email"}
+                </div>
+                <p className={`mt-0.5 text-xs leading-relaxed ${emailSent ? "text-blue-800" : "text-amber-800"}`}>
+                  {emailSent ? (
+                    <>
+                      We sent a verification link to{" "}
+                      <span className="font-semibold">{form.email || form.ownerEmail}</span>. Click the
+                      link in that email to activate the account. Check your spam folder if you don't
+                      see it within a few minutes.
+                    </>
+                  ) : (
+                    <>
+                      An account was created for{" "}
+                      <span className="font-semibold">{form.email || form.ownerEmail}</span>, but the
+                      verification email could not be sent right now. On the login page, use{" "}
+                      <span className="font-semibold">Forgot password</span> to receive a fresh link.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-5">
             <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -2753,6 +2919,33 @@ function SuccessScreen({ id, form }: { id: string; form: FormState }) {
             <Stat label="Documents" value={String(form.uploaded.length)} tone="primary" />
           </div>
 
+          {/* Digital ID card with scannable QR — issued immediately for informal taxpayers */}
+          {cardCfg && (
+            <div className="mt-6 border-t border-border pt-6 text-left">
+              <h3 className="text-center font-display text-base font-bold text-ink">
+                Your digital ID card
+              </h3>
+              <p className="mt-1 text-center text-xs text-muted-foreground">
+                Show the QR code to any enforcement officer — it verifies your identity and payment
+                standing instantly. Download the PDF to print it.
+              </p>
+              <div className="mt-4 flex justify-center">
+                {cardLoading ? (
+                  <div className="h-40 w-[340px] animate-pulse rounded-2xl bg-secondary" />
+                ) : (
+                  <TaxpayerIdCard
+                    refNo={id}
+                    qrToken={qrToken}
+                    name={cardName}
+                    kind={cardCfg.kind}
+                    lines={cardCfg.lines(form)}
+                    issuedAt={new Date().toISOString().split("T")[0]}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
               to="/portal"
@@ -2762,6 +2955,7 @@ function SuccessScreen({ id, form }: { id: string; form: FormState }) {
             </Link>
             <Link
               to="/register"
+              search={{ category: undefined }}
               className="rounded-lg border border-border bg-card px-5 py-2 text-sm font-semibold"
               reloadDocument
             >
@@ -2771,5 +2965,6 @@ function SuccessScreen({ id, form }: { id: string; form: FormState }) {
         </div>
       </main>
     </div>
+    </RegisterShell>
   );
 }

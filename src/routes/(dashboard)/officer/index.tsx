@@ -12,10 +12,12 @@ import {
   XCircle,
   Plus,
   Loader2,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardShell } from "@/shared/components/layout/DashboardShell";
 import { OfficerGuard } from "@/shared/components/layout/RoleGuard";
+import { IssuedIdCards } from "@/shared/components/ui/IssuedIdCards";
 import { fmtNaira } from "@/shared/lib/utils";
 import {
   fetchPendingRegistrations,
@@ -55,9 +57,9 @@ type PaymentRow = {
   created_at: string;
 };
 
-type Tab = "overview" | "approvals" | "collections";
+type Tab = "overview" | "approvals" | "collections" | "idcards";
 
-const TAB_VALUES: Tab[] = ["overview", "approvals", "collections"];
+const TAB_VALUES: Tab[] = ["overview", "approvals", "collections", "idcards"];
 
 function OfficerDashboardContent() {
   const { user } = useAuth();
@@ -182,6 +184,9 @@ function OfficerDashboardContent() {
         </TabButton>
         <TabButton active={activeTab === "collections"} onClick={() => setActiveTab("collections")} icon={<FileText className="h-4 w-4" />}>
           Collections
+        </TabButton>
+        <TabButton active={activeTab === "idcards"} onClick={() => setActiveTab("idcards")} icon={<QrCode className="h-4 w-4" />}>
+          ID Cards
         </TabButton>
       </div>
 
@@ -314,6 +319,20 @@ function OfficerDashboardContent() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ---------------------------------------------------------------- ID Cards */}
+      {activeTab === "idcards" && user && (
+        <div className="space-y-6">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-ink">ID Cards I've Issued</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Every trader and transport operator you registered — their digital ID card with its
+              scannable QR, ready to reprint any time.
+            </p>
+          </div>
+          <IssuedIdCards staffId={user.id} />
         </div>
       )}
 

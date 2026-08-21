@@ -67,6 +67,20 @@ const SAMPLE_BUSINESSES = [
   },
 ];
 
+// Informal-sector demo rows so the market / transport / marshal dashboards are
+// populated. Keyed off the marshal and taxpayer demo accounts.
+const SAMPLE_TRADERS = [
+  { trader_name: "Hauwa Musa", market_name: "Kwali Main Market", stall_number: "A-12", goods_category: "food", ward: "Kwali", daily_toll: 100 },
+  { trader_name: "Blessing Okonkwo", market_name: "Kwali Main Market", stall_number: "B-05", goods_category: "clothing", ward: "Kwali", daily_toll: 100 },
+  { trader_name: "Sule Garba", market_name: "Yangoji Market", stall_number: "C-21", goods_category: "household", ward: "Yangoji", daily_toll: 100 },
+];
+
+const SAMPLE_VEHICLES = [
+  { operator_name: "Sani Bello", plate_number: "KWL-2481-AB", vehicle_type: "tricycle", route: "Kwali–Yangoji", ward: "Kwali", daily_ticket_price: 100 },
+  { operator_name: "Yakubu Sani", plate_number: "KWL-7714-KJ", vehicle_type: "motorcycle", route: "Kwali Town", ward: "Kwali", daily_ticket_price: 100 },
+  { operator_name: "Chinedu Eze", plate_number: "KWL-0091-XY", vehicle_type: "commercial-vehicle", route: "Kwali–Abuja", ward: "Pai", daily_ticket_price: 500 },
+];
+
 export const Route = createFileRoute("/api/public/seed-demo")({
   server: {
     handlers: {
@@ -168,6 +182,51 @@ async function handle() {
             }));
             const { error: bizErr } = await supabaseAdmin.from("businesses").insert(rows);
             if (bizErr) notes.push(`businesses: ${bizErr.message}`);
+          }
+        }
+
+        // Seed informal-sector rows for the marshal demo account, so the field
+        // dashboard shows real onboarded traders and vehicles.
+        if (u.role === "marshal") {
+          const { count: stallCount } = await supabaseAdmin
+            .from("market_stalls")
+            .select("id", { count: "exact", head: true })
+            .eq("registered_by", userId);
+          if (!stallCount) {
+            const rows = SAMPLE_TRADERS.map((t, i) => ({
+              owner_id: userId!,
+              registered_by: userId,
+              ref: `KWL-TRD-2026-${String(2000 + i).padStart(6, "0")}`,
+              trader_name: t.trader_name,
+              market_name: t.market_name,
+              stall_number: t.stall_number,
+              goods_category: t.goods_category,
+              ward: t.ward,
+              daily_toll: t.daily_toll,
+              status: "Active",
+            }));
+            const { error: e } = await supabaseAdmin.from("market_stalls").insert(rows);
+            if (e) notes.push(`traders: ${e.message}`);
+          }
+          const { count: vehCount } = await supabaseAdmin
+            .from("transport_vehicles")
+            .select("id", { count: "exact", head: true })
+            .eq("registered_by", userId);
+          if (!vehCount) {
+            const rows = SAMPLE_VEHICLES.map((v, i) => ({
+              owner_id: userId!,
+              registered_by: userId,
+              ref: `KWL-TRP-2026-${String(3000 + i).padStart(6, "0")}`,
+              operator_name: v.operator_name,
+              plate_number: v.plate_number,
+              vehicle_type: v.vehicle_type,
+              route: v.route,
+              ward: v.ward,
+              daily_ticket_price: v.daily_ticket_price,
+              status: "Active",
+            }));
+            const { error: e } = await supabaseAdmin.from("transport_vehicles").insert(rows);
+            if (e) notes.push(`vehicles: ${e.message}`);
           }
         }
 

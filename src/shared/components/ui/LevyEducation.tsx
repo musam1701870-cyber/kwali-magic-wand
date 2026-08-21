@@ -228,8 +228,10 @@ function FAQItem({ faq }: { faq: FAQ }) {
   );
 }
 
-export function LevyEducation({ category }: { category: Category }) {
-  const c = content[category];
+export function LevyEducation({ category }: { category: Category | string }) {
+  // Callers pass dynamic account types (e.g. from signup) that may not be a
+  // content key — fall back to the business education rather than crashing.
+  const c = content[category as Category] ?? content.business;
   const [expanded, setExpanded] = useState(false);
 
   return (

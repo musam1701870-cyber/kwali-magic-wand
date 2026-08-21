@@ -144,6 +144,33 @@ export async function exportIdCardPDF(opts: {
   doc.text(opts.footer ?? "KSRP · Kwali Smart Revenue Platform", 18, h - 14);
   doc.text("Scan to verify", w - 18, h - 14, { align: "right" });
 
+  // ---- Back of card --------------------------------------------------------
+  doc.addPage([340, 216], "landscape");
+  doc.setFillColor(15, 76, 58);
+  doc.rect(0, 0, w, h, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
+  doc.text("Kwali Area Council", 18, 28);
+  doc.setFontSize(7.5);
+  doc.setTextColor(230, 230, 230);
+  const notes = [
+    "This card identifies the holder as a registered taxpayer of Kwali Area Council.",
+    "It is issued for revenue and compliance purposes and is not a national ID.",
+    "Enforcement officers verify the card by scanning the QR code on the front.",
+    "",
+    "If found, return to the nearest Kwali Area Council revenue office.",
+    `Card No: ${opts.idNo}`,
+    "Helpline: Kwali Area Council Revenue Department",
+  ];
+  let by = 52;
+  notes.forEach((n) => {
+    doc.text(n, 18, by);
+    by += 16;
+  });
+  doc.setFontSize(7);
+  doc.setTextColor(200, 168, 76);
+  doc.text("Valid while registration remains Active", 18, h - 24);
+
   doc.save(opts.filename.endsWith(".pdf") ? opts.filename : `${opts.filename}.pdf`);
 }
 

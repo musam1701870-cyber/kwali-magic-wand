@@ -13,6 +13,7 @@ export function SiteNav() {
     { to: "/transport", label: "Transport" },
     { to: "/sanitation", label: "Sanitation" },
     { to: "/bylaws", label: "Bylaws" },
+    { to: "/reprint-card", label: "Reprint ID Card" },
     { to: "/about", label: "About" },
     { to: "/contact", label: "Contact" },
   ];

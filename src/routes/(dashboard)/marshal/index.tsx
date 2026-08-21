@@ -16,12 +16,14 @@ import {
   UserPlus,
   Award,
   ClipboardCheck,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardShell } from "@/shared/components/layout/DashboardShell";
 import { MarshalGuard } from "@/shared/components/layout/RoleGuard";
 import { StatusBadge } from "@/shared/components/ui/status-badge";
 import { TaxpayerIdCard } from "@/shared/components/ui/TaxpayerIdCard";
+import { IssuedIdCards } from "@/shared/components/ui/IssuedIdCards";
 import { fmtNaira } from "@/shared/lib/utils";
 import {
   genRef,
@@ -95,9 +97,9 @@ type PaymentRow = {
   created_at: string;
 };
 
-type Tab = "overview" | "onboard" | "collections" | "verifications" | "incidents";
+type Tab = "overview" | "onboard" | "collections" | "verifications" | "incidents" | "idcards";
 
-const TAB_VALUES: Tab[] = ["overview", "onboard", "collections", "verifications", "incidents"];
+const TAB_VALUES: Tab[] = ["overview", "onboard", "collections", "verifications", "incidents", "idcards"];
 
 const EMPTY_TOTALS: CollectorTotals = { today: 0, month: 0, allTime: 0, countToday: 0, countAllTime: 0 };
 
@@ -130,7 +132,6 @@ function MarshalDashboardContent() {
   const [onboarded, setOnboarded] = useState(0);
 
   const [loadingData, setLoadingData] = useState(true);
-  const [showOnboard, setShowOnboard] = useState(false);
   const [showRecord, setShowRecord] = useState(false);
   const [showIncident, setShowIncident] = useState(false);
 
@@ -214,6 +215,9 @@ function MarshalDashboardContent() {
         <TabButton active={activeTab === "incidents"} onClick={() => setActiveTab("incidents")} icon={<AlertTriangle className="h-4 w-4" />}>
           Incidents{openIncidents > 0 ? ` (${openIncidents})` : ""}
         </TabButton>
+        <TabButton active={activeTab === "idcards"} onClick={() => setActiveTab("idcards")} icon={<QrCode className="h-4 w-4" />}>
+          ID Cards
+        </TabButton>
       </div>
 
       {/* ---------------------------------------------------------------- Overview */}
@@ -241,7 +245,7 @@ function MarshalDashboardContent() {
           <div className="surface-card p-6">
             <h2 className="mb-4 font-display text-lg font-bold">Quick Actions</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <QuickAction onClick={() => setShowOnboard(true)} icon={<UserPlus className="h-6 w-6" />} title="Onboard Trader" subtitle="Register a trader in the field" color="bg-blue-100 text-blue-600" />
+              <QuickAction onClick={() => navigate({ to: "/register", search: { category: undefined } })} icon={<UserPlus className="h-6 w-6" />} title="Onboard Trader" subtitle="Full registration form" color="bg-blue-100 text-blue-600" />
               <QuickAction onClick={() => setShowRecord(true)} icon={<Plus className="h-6 w-6" />} title="Record Collection" subtitle="Log a toll / ticket collected" color="bg-green-100 text-green-600" />
               <QuickAction onClick={() => setActiveTab("verifications")} icon={<ClipboardCheck className="h-6 w-6" />} title="Verifications" subtitle="See tickets & receipts checked" color="bg-teal-100 text-teal-600" />
               <QuickAction onClick={() => setShowIncident(true)} icon={<AlertTriangle className="h-6 w-6" />} title="Log Incident" subtitle="Report an enforcement action" color="bg-red-100 text-red-600" />
@@ -256,19 +260,25 @@ function MarshalDashboardContent() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="font-display text-2xl font-bold text-ink">Onboard a Trader</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Register market women, petty traders and okada/keke operators. They go live immediately.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Register market women, petty traders and okada/keke operators using the full council registration form.</p>
             </div>
-            <button onClick={() => setShowOnboard(true)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:opacity-90">
-              <UserPlus className="h-4 w-4" /> New Trader
+            <button onClick={() => navigate({ to: "/register", search: { category: undefined } })} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:opacity-90">
+              <UserPlus className="h-4 w-4" /> Open Registration Form
             </button>
           </div>
 
           <div className="surface-card p-6">
             <p className="text-sm text-muted-foreground">
               You have onboarded <span className="font-semibold text-ink">{onboarded}</span> trader{onboarded === 1 ? "" : "s"} so far. Use{" "}
-              <span className="font-semibold text-ink">New Trader</span> to add a market stall or a transport operator. Formal businesses
-              (hotels, filling stations, registered companies) self-register online and are approved by an officer.
+              <span className="font-semibold text-ink">Open Registration Form</span> to register a trader, transport operator or any other
+              taxpayer with the full guided form — the same form used at the council office. The sidebar stays available while you work.
             </p>
+            <button
+              onClick={() => navigate({ to: "/register", search: { category: undefined } })}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-95"
+            >
+              <UserPlus className="h-4 w-4" /> Start a registration
+            </button>
           </div>
         </div>
       )}
@@ -395,6 +405,20 @@ function MarshalDashboardContent() {
         </div>
       )}
 
+      {/* ---------------------------------------------------------------- ID Cards */}
+      {activeTab === "idcards" && user && (
+        <div className="space-y-6">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-ink">ID Cards I've Issued</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Every trader and transport operator you registered — their digital ID card with its
+              scannable QR, ready to reprint any time.
+            </p>
+          </div>
+          <IssuedIdCards staffId={user.id} />
+        </div>
+      )}
+
       {/* ---------------------------------------------------------------- Incidents */}
       {activeTab === "incidents" && (
         <div className="space-y-6">
@@ -441,9 +465,6 @@ function MarshalDashboardContent() {
       )}
 
       {/* Modals */}
-      {showOnboard && user && (
-        <OnboardTraderModal marshalId={user.id} onClose={() => setShowOnboard(false)} onDone={() => { setShowOnboard(false); void loadData(); }} />
-      )}
       {showRecord && user && (
         <RecordCollectionModal collectorId={user.id} onClose={() => setShowRecord(false)} onDone={() => { setShowRecord(false); void loadData(); }} />
       )}

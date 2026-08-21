@@ -167,6 +167,12 @@ const marshalGroups: typeof navGroups = [
         icon: <AlertTriangle className="h-4 w-4" />,
         hash: "incidents",
       },
+      {
+        to: "/marshal",
+        label: "ID Cards",
+        icon: <Scan className="h-4 w-4" />,
+        hash: "idcards",
+      },
     ],
   },
   {
@@ -242,6 +248,12 @@ const officerGroups: typeof navGroups = [
         label: "Collections",
         icon: <CreditCard className="h-4 w-4" />,
         hash: "collections",
+      },
+      {
+        to: "/officer",
+        label: "ID Cards",
+        icon: <Scan className="h-4 w-4" />,
+        hash: "idcards",
       },
     ],
   },
